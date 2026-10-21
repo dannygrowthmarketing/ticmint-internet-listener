@@ -87,7 +87,7 @@ What it listens for (queries, communities, the 23 competitors and their aliases)
 git clone https://github.com/dannygrowthmarketing/ticmint-internet-listener && cd ticmint-internet-listener
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt pytest
-python -m pytest -q             # 9 tests, including a full MCP round-trip on fixtures
+python -m pytest -q             # 10 tests, including a full MCP round-trip on fixtures
 python -m agent.run             # one live cycle: HN + Mastodon (+ Reddit if your IP isn't blocked)
 ```
 

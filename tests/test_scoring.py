@@ -52,3 +52,8 @@ def test_suspended_organiser_is_hot_despite_typo():
 
 def test_happy_event_promotion_is_dropped():
     assert s("reddit:fx7")["score"] < watchlist()["min_score_rules_only"]
+
+
+def test_long_event_digest_is_dropped():
+    # Mentions Eventbrite once; "recommend", "problem", "can't" appear far away from it.
+    assert s("reddit:fx8")["score"] < watchlist()["min_score_rules_only"]

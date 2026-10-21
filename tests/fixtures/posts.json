@@ -115,5 +115,21 @@
    "author": "fixture_host",
    "karma": 12
   }
+ },
+ {
+  "id": "reddit:fx8",
+  "source": "reddit",
+  "url": "https://www.reddit.com/r/PensacolaEvents/comments/fx8",
+  "author": "fixture_digest",
+  "author_url": "https://www.reddit.com/user/fixture_digest",
+  "title": "Events for Fri 10/16 - Sun 10/18",
+  "text": "Please check if the event is still happening. Fri 0 PM | Wine tasting at Bar 0 | free entry | https://example.com/e0  Fri 1 PM | Wine tasting at Bar 1 | free entry | https://example.com/e1  Fri 2 PM | Wine tasting at Bar 2 | free entry | https://example.com/e2  Fri 3 PM | Wine tasting at Bar 3 | free entry | https://example.com/e3  Fri 4 PM | Wine tasting at Bar 4 | free entry | https://example.com/e4  Fri 5 PM | Wine tasting at Bar 5 | free entry | https://example.com/e5  Fri 6 PM | Wine tasting at Bar 6 | free entry | https://example.com/e6  Fri 7 PM | Wine tasting at Bar 7 | free entry | https://example.com/e7  Fri 8 PM | Wine tasting at Bar 8 | free entry | https://example.com/e8  Fri 9 PM | Wine tasting at Bar 9 | free entry | https://example.com/e9  Fri 10 PM | Wine tasting at Bar 10 | free entry | https://example.com/e10  Fri 11 PM | Wine tasting at Bar 11 | free entry | https://example.com/e11  Tickets for the jazz night are on Eventbrite. Sat 0 AM | Market 0 | https://example.com/m0  Sat 1 AM | Market 1 | https://example.com/m1  Sat 2 AM | Market 2 | https://example.com/m2  Sat 3 AM | Market 3 | https://example.com/m3  Sat 4 AM | Market 4 | https://example.com/m4  Sat 5 AM | Market 5 | https://example.com/m5  Sat 6 AM | Market 6 | https://example.com/m6  Sat 7 AM | Market 7 | https://example.com/m7  Sat 8 AM | Market 8 | https://example.com/m8  Sat 9 AM | Market 9 | https://example.com/m9  Sat 10 AM | Market 10 | https://example.com/m10  Sat 11 AM | Market 11 | https://example.com/m11  We recommend arriving early, parking is a problem downtown and we can't guarantee spots.",
+  "created_utc": "2026-10-20T12:38:37.349993+00:00",
+  "community": "r/PensacolaEvents",
+  "raw_score": 10,
+  "_profile": {
+   "author": "fixture_digest",
+   "karma": 900
+  }
  }
 ]

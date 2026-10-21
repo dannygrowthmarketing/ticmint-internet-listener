@@ -104,16 +104,25 @@ def score(post: dict, competitors: dict[str, list[str]], now: datetime | None = 
         return {"score": 0, "competitors": [], "pain_categories": [], "is_organiser_signal": False,
                 "is_fan_signal": False, "switching_intent": False, "negative_emotion": False, "regions": [],
                 "why": "No ticketing context."}
+
+    # Long posts (event digests, listicles, essays) mention a platform once and say
+    # "recommend" or "problem" somewhere else entirely. Judge sentiment only on the
+    # text around the platform/ticketing mentions.
+    whole = text
+    if len(text) > 700:
+        spans = [m.span() for a in (al for name in comps for al in competitors[name]) for m in re.finditer(re.escape(a.strip()), text, re.I)]
+        spans += [m.span() for m in TICKETING.finditer(text)]
+        text = " … ".join(whole[max(0, a - 250): b + 250] for a, b in sorted(spans)[:6]) or whole[:700]
     pains = [k for k, rx in PAIN.items() if rx.search(text)]
     organiser = bool(ORGANISER.search(text)) or community in ORGANISER_COMMUNITIES
     fan = bool(FAN.search(text))
     switching = bool(SWITCHING.search(text))
     anger = bool(ANGER.search(text))
     problem = bool(PROBLEM.search(text))
-    promo = bool(PROMO.search(text))
+    promo = bool(PROMO.search(whole)) or (len(whole) > 1500 and whole.count("http") >= 3)
     frustrated = anger or switching or problem
     noise = bool(NOISE.search(text))
-    regions = [r for r, rx in REGIONS.items() if rx.search(f"{text} {community}")]
+    regions = [r for r, rx in REGIONS.items() if rx.search(f"{whole} {community}")]
 
     s = 0
     if comps:
@@ -146,7 +155,7 @@ def score(post: dict, competitors: dict[str, list[str]], now: datetime | None = 
             s += 5
     except (KeyError, ValueError):
         pass
-    if len(text.strip()) < 40:
+    if len(whole.strip()) < 40:
         s -= 10
 
     s = max(0, min(100, s))
