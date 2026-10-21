@@ -22,7 +22,9 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
     limit = cfg.get("max_per_query", 25)
 
     # 1. Collect -----------------------------------------------------------
-    jobs = [("hackernews", q) for q in cfg["queries"]]
+    # HN search is literal and low-volume, so it gets short brand/category terms;
+    # Reddit and Bluesky get the full organiser-phrased query list.
+    jobs = [("hackernews", q) for q in cfg.get("hackernews_queries", cfg["queries"])]
     jobs += [("reddit", q) for q in cfg["queries"]]
     jobs += [("bluesky", q) for q in cfg["queries"]]
     jobs += [("mastodon", h) for h in cfg.get("mastodon", {}).get("hashtags", [])]
@@ -79,14 +81,15 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
     run["kept"] = len(leads)
     for tier in ("Hot", "Warm", "Watch"):
         run[tier.lower()] = sum(1 for l in leads if l["priority"] == tier)
-    run["source_errors"] = "; ".join(f"{k}: {v[:120]}" for k, v in errors.items())
+    run["source_errors"] = "; ".join(f"{k}: {v[:400]}" for k, v in errors.items())
     run["finished_utc"] = _now()
 
-    # Log the run before syncing so the sheet's Run log includes this run.
-    run["sheet_status"] = "pending"
+    # Log the run before syncing so the sheet's Run log includes this run, then again with the result.
+    run["sheet_status"] = "syncing"
     await tools.call("log_run", run=run)
     sheet_status = await tools.call("sync_sheet")
     run["sheet_status"] = sheet_status
+    await tools.call("log_run", run=run)
     log(f"[sheet] {sheet_status}")
     log(f"[done] kept {run['kept']} (hot {run['hot']}, warm {run['warm']}, watch {run['watch']}), llm calls {llm_calls}")
     return run

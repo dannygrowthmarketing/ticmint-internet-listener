@@ -4,7 +4,7 @@
 # for my event") rather than brand-only ("eventbrite"), because brand-only searches
 # are 90%+ fans complaining about a ticket they bought.
 
-lookback_hours: 168        # first run looks back a week; later runs only keep posts they haven't seen
+lookback_hours: 720        # 30 days; the de-dup state means each post is only ever scored once
 max_per_query: 25
 min_score_to_keep: 30      # below this a post is dropped, not written to the sheet
 
@@ -34,6 +34,18 @@ queries:
   - event ticketing fees too high
   - recommend ticketing software festival
   - ticketing for conference organisers
+
+hackernews_queries:
+  # HN users are mostly builders, not fans, so plain brand terms are high-signal there.
+  - eventbrite
+  - ticket tailor
+  - tito.io
+  - luma events
+  - humanitix
+  - ticketing platform
+  - event ticketing
+  - sell tickets
+  - ticketmaster organizer
 
 reddit:
   # Searched site-wide plus these organiser-heavy subreddits

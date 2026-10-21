@@ -68,14 +68,13 @@ def write_leads(new_rows: list[dict]) -> list[dict]:
 
 
 def append_run(run: dict) -> None:
+    """Append a run, or update it in place if this run_id is already logged."""
     DATA.mkdir(parents=True, exist_ok=True)
-    p = DATA / "runs.csv"
-    new = not p.exists()
-    with p.open("a", newline="", encoding="utf-8") as f:
+    runs = [r for r in read_runs() if r.get("run_id") != run.get("run_id")] + [run]
+    with (DATA / "runs.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=RUN_COLUMNS, extrasaction="ignore")
-        if new:
-            w.writeheader()
-        w.writerow(run)
+        w.writeheader()
+        w.writerows(runs)
 
 
 def read_runs() -> list[dict]:
