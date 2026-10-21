@@ -1,10 +1,13 @@
 name: listen
 
-# Every 6 hours, plus on demand from the Actions tab.
+# Every 6 hours, on demand from the Actions tab, and whenever the agent's code changes.
 on:
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["listener_mcp/**", "agent/**", "config/**", ".github/workflows/listen.yml"]
 
 permissions:
   contents: write
