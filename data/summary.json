@@ -1,0 +1,38 @@
+{
+  "generated_utc": "2026-10-21 09:17:23",
+  "posts_processed_total": 162,
+  "leads_total": 1,
+  "leads_by_priority": {
+    "Hot": 1,
+    "Warm": 0,
+    "Watch": 0
+  },
+  "unique_prospects": 1,
+  "leads_reviewed": 0,
+  "runs_logged": 7,
+  "runs_by_trigger": {
+    "push": 7
+  },
+  "runs_by_status": {
+    "ok": 0,
+    "partial": 7,
+    "failed": 0
+  },
+  "last_successful_run_utc": "2026-10-21 08:43:51",
+  "last_run": {
+    "finished_utc": "2026-10-21 08:43:51",
+    "trigger": "push",
+    "status": "partial",
+    "sources_ok": "hackernews mastodon",
+    "sources_failed": "reddit",
+    "sources_skipped": "bluesky",
+    "discovered": "162",
+    "new": "162",
+    "qualified": "2",
+    "source_errors": "reddit: https://www.reddit.com/search.json -> HTTP 403; pullpush: https://api.pullpush.io/reddit/search/submission/ -> HTTP 403; rss: https://www.reddit.com/search.rss -> HTTP 429; bluesky: bluesky skipped: no credentials"
+  },
+  "llm_enabled": false,
+  "llm_calls_total": 0,
+  "sheet_push_enabled": false,
+  "note": "posts_processed_total counts distinct posts ever scored (de-dup state). It was reset on 21 Oct while scoring rules changed, so it undercounts the earliest runs."
+}

@@ -3,6 +3,13 @@
 `tools.call(name, **args)` is either a real MCP client session (agent/run.py)
 or an in-process shim (the server's run_listener tool). The pipeline never
 touches an API, a file or the sheet directly: that is all the server's job.
+
+Run accounting (what each number in data/runs.csv means):
+  discovered    unique posts returned by the sources this run
+  new           of those, posts never processed before (these are scored)
+  shortlisted   new posts whose rule score reached min_score_to_keep
+  qualified     leads written to the sheet this run (hot + warm + watch)
+  status        ok | partial (some source failed) | failed (no source worked)
 """
 
 import uuid
@@ -31,18 +38,27 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
 
     posts: dict[str, dict] = {}
     errors: dict[str, str] = {}
+    calls: dict[str, list[int]] = {}  # source -> [ok calls, failed calls]
+    skipped: set[str] = set()
     dead_sources: set[str] = set()
     crossposts: set = set()
     for source, q in jobs:
         if source in dead_sources:
             continue
         res = await tools.call("search_source", source=source, query=q, since_hours=lookback, limit=limit)
+        tally = calls.setdefault(source, [0, 0])
         if res.get("error"):
+            if "skipped" in res["error"]:
+                skipped.add(source)  # not configured: not a failure
+                dead_sources.add(source)
+                continue
+            tally[1] += 1
             errors.setdefault(source, res["error"])
-            # A source that is blocked/unconfigured on its first query will be for the rest.
-            if not res["posts"] and (source not in {p["source"] for p in posts.values()}):
+            # A source that fails its first query without ever succeeding is blocked for this run.
+            if tally[0] == 0:
                 dead_sources.add(source)
             continue
+        tally[0] += 1
         for p in res["posts"]:
             # Cross-posts: same author + title in several subreddits count once.
             key = (p["source"], p.get("author"), (p.get("title") or "").strip().lower()) if p.get("title") else p["id"]
@@ -50,8 +66,13 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
                 continue
             crossposts.add(key)
             posts.setdefault(p["id"], p)
-    run["fetched"] = len(posts)
-    log(f"[collect] {len(posts)} unique posts; source errors: {errors or 'none'}")
+    ok_sources = sorted(s for s, (ok, _) in calls.items() if ok)
+    failed_sources = sorted(s for s in errors if s not in ok_sources)
+    run["sources_ok"] = " ".join(ok_sources)
+    run["sources_failed"] = " ".join(failed_sources)
+    run["sources_skipped"] = " ".join(sorted(skipped))
+    run["discovered"] = len(posts)
+    log(f"[collect] {len(posts)} unique posts; ok: {ok_sources}; failed: {failed_sources}; skipped: {sorted(skipped)}")
 
     # 2. De-duplicate against every previous run ----------------------------
     fresh_ids = await tools.call("filter_unseen", post_ids=list(posts))
@@ -70,24 +91,37 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
     run["shortlisted"] = len(shortlist)
     log(f"[rules] {len(shortlist)} shortlisted of {len(fresh)}")
 
-    leads, llm_calls = [], 0
+    leads, llm_calls, llm_errors, proc_errors, done_ids = [], 0, 0, 0, set()
     for p in shortlist:
         use_llm = llm_calls < max_llm_calls
-        res = await tools.call("qualify_post", post=p, use_llm=use_llm)
+        try:
+            res = await tools.call("qualify_post", post=p, use_llm=use_llm)
+        except Exception as e:  # one bad post must not cost the run its other results
+            proc_errors += 1
+            log(f"[error] qualify_post {p['id']}: {str(e)[:160]}")
+            continue
+        done_ids.add(p["id"])
         if res.get("llm") is not None:
             llm_calls += 1
+            if res["llm"].get("error"):
+                llm_errors += 1
         if res["keep"]:
             leads.append(res["lead"])
     run["llm_calls"] = llm_calls
+    run["llm_errors"] = llm_errors
+    run["processing_errors"] = proc_errors
 
     # 4. Persist, mark seen, sync ------------------------------------------
     if leads:
         await tools.call("save_leads", leads=leads)
-    await tools.call("mark_seen", post_ids=fresh_ids)
-    run["kept"] = len(leads)
+    # Posts that errored stay unseen so the next run retries them.
+    below_bar = {p["id"] for p in fresh} - {p["id"] for p in shortlist}
+    await tools.call("mark_seen", post_ids=sorted(below_bar | done_ids))
+    run["qualified"] = len(leads)
     for tier in ("Hot", "Warm", "Watch"):
         run[tier.lower()] = sum(1 for l in leads if l["priority"] == tier)
-    run["source_errors"] = "; ".join(f"{k}: {v[:400]}" for k, v in errors.items())
+    run["source_errors"] = "; ".join(f"{k}: {v[:300]}" for k, v in errors.items())
+    run["status"] = "failed" if not ok_sources else ("partial" if failed_sources or proc_errors else "ok")
     run["finished_utc"] = _now()
 
     # Log the run before syncing so the sheet's Run log includes this run, then again with the result.
@@ -96,6 +130,8 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
     sheet_status = await tools.call("sync_sheet")
     run["sheet_status"] = sheet_status
     await tools.call("log_run", run=run)
+    await tools.call("write_summary")
     log(f"[sheet] {sheet_status}")
-    log(f"[done] kept {run['kept']} (hot {run['hot']}, warm {run['warm']}, watch {run['watch']}), llm calls {llm_calls}")
+    log(f"[done] {run['status']}: qualified {run['qualified']} (hot {run['hot']}, warm {run['warm']}, "
+        f"watch {run['watch']}), llm calls {llm_calls} ({llm_errors} errors)")
     return run

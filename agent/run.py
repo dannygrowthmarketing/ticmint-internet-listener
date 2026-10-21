@@ -49,8 +49,8 @@ async def main() -> int:
             print(f"[mcp] connected to ticmint-listener, {len(tools)} tools: {', '.join(t.name for t in tools)}")
             run = await run_cycle(McpTools(session), trigger=args.trigger, max_llm_calls=args.max_llm_calls)
     print(json.dumps(run, indent=2))
-    # Fail the workflow only if every source failed: that's an outage, not a quiet day.
-    return 1 if run["fetched"] == 0 and run["source_errors"] else 0
+    # Fail the workflow only if no source worked: that is an outage, not a quiet day.
+    return 1 if run["status"] == "failed" else 0
 
 
 if __name__ == "__main__":

@@ -6,3 +6,4 @@ __pycache__/
 service-account*.json
 .pytest_cache/
 _site/
+data/crm_outbox.jsonl

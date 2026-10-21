@@ -5,7 +5,7 @@ Needs two env vars:
   SHEET_ID                     the spreadsheet id from its URL; share the sheet
                                with the service account's client_email as Editor
 
-Tabs written: "Leads" (full rewrite, sorted, keeps the Status column a human
+Tabs written: "Leads" (full rewrite, sorted, keeps the review_status a human
 typed into the sheet) and "Run log" (one row per run). A full rewrite costs
 two API calls per tab, well inside the free 300 requests/minute quota.
 """
@@ -48,12 +48,12 @@ def sync(leads: list[dict], runs: list[dict]) -> str:
     ws = _tab(book, "Leads", len(LEAD_COLUMNS))
     # Preserve statuses typed by a human in the sheet ("contacted", "not a fit" ...)
     current = ws.get_all_values()
-    if current and "lead_id" in current[0] and "status" in current[0]:
-        i_id, i_st = current[0].index("lead_id"), current[0].index("status")
+    if current and "lead_id" in current[0] and "review_status" in current[0]:
+        i_id, i_st = current[0].index("lead_id"), current[0].index("review_status")
         typed = {r[i_id]: r[i_st] for r in current[1:] if len(r) > max(i_id, i_st) and r[i_st]}
         for lead in leads:
             if lead["lead_id"] in typed:
-                lead["status"] = typed[lead["lead_id"]]
+                lead["review_status"] = typed[lead["lead_id"]]
     values = [LEAD_COLUMNS] + [[str(l.get(c, "")) for c in LEAD_COLUMNS] for l in leads]
     ws.clear()
     ws.update(values=values, range_name="A1", value_input_option="RAW")

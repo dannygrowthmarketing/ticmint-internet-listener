@@ -19,7 +19,7 @@ function setup() {
 
 function refresh() {
   const book = SpreadsheetApp.getActive();
-  writeTab_(book, 'Leads', fetchCsv_('leads.csv'), 'lead_id', 'status');
+  writeTab_(book, 'Leads', fetchCsv_('leads.csv'), 'lead_id', 'review_status');
   const runs = fetchCsv_('runs.csv');
   writeTab_(book, 'Run log', [runs[0]].concat(runs.slice(1).reverse()));
   const meta = tab_(book, 'About');

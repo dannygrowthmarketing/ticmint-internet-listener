@@ -12,6 +12,7 @@ Run:  python -m listener_mcp.server        (stdio transport)
 """
 
 import os
+import re
 from datetime import datetime, timedelta, timezone
 
 from mcp.server.fastmcp import FastMCP
@@ -112,72 +113,151 @@ def enrich_author(source: str, author: str) -> dict:
 
 @mcp.tool()
 def qualify_post(post: dict, use_llm: bool = True) -> dict:
-    """Full qualification of one post: rules -> (if shortlisted) LLM with grounding check ->
-    author enrichment -> a sheet-ready lead row.
+    """Full qualification of one post: rules -> author enrichment -> (if shortlisted) LLM with
+    grounding check -> a sheet-ready lead row carrying the evidence behind every judgment.
 
-    Returns {"keep": bool, "lead": {...} | None, "rule_score": int, "llm": {...} | None}."""
+    Returns {"keep": bool, "lead": {...} | None, "rule_score": int, "llm": {...} | None, "reason": str}."""
     cfg = watchlist()
-    feats = scoring.score(post, cfg["competitors"])
     min_keep = cfg.get("min_score_to_keep", 30)
+    feats = scoring.score(post, cfg["competitors"])
     if feats["score"] < min_keep:
-        return {"keep": False, "lead": None, "rule_score": feats["score"], "llm": None}
+        return {"keep": False, "lead": None, "rule_score": feats["score"], "llm": None,
+                "reason": f"rules {feats['score_explanation']}"}
 
-    verdict = llm.classify(post) if use_llm else None
+    # Enrich before the final score so identity confidence counts.
+    if not post.get("_profile") and post.get("author"):
+        prof = enrich_author(post["source"], post["author"])
+        if not prof.get("error"):
+            post = {**post, "_profile": prof}
+            feats = scoring.score(post, cfg["competitors"])
+    profile = post.get("_profile") or {}
+
+    verdict = None
+    if use_llm:
+        try:
+            verdict = llm.classify(post)
+        except Exception as e:  # network error, timeout, provider outage: never lose the post
+            verdict = {"error": f"{type(e).__name__}: {str(e)[:120]}"}
     final, scored_by = feats["score"], "rules"
     why, opener = feats["why"], scoring.opener(feats)
     pain = feats["pain_categories"][0] if feats["pain_categories"] else ""
-    intent = "switching_now" if feats["switching_intent"] else ("venting" if feats["negative_emotion"] else "")
+    intent = "switching_or_evaluating" if feats["switching_intent"] else ""
     competitor = ", ".join(feats["competitors"])
+    explanation = feats["score_explanation"]
+    llm_agrees = False
 
     if verdict and not verdict.get("error"):
         if not verdict["grounded"]:
             # Ungrounded answer: ignore the model, keep the rule score, flag it for review.
             scored_by = "rules (LLM rejected: " + "; ".join(verdict["grounding_problems"]) + ")"
         elif not verdict.get("is_organiser"):
-            return {"keep": False, "lead": None, "rule_score": feats["score"], "llm": verdict}
+            return {"keep": False, "lead": None, "rule_score": feats["score"], "llm": verdict,
+                    "reason": "LLM: author is not an organiser"}
         else:
             final = round(0.4 * feats["score"] + 0.6 * verdict["score"])
-            scored_by = f"rules+llm ({os.getenv('LLM_MODEL', 'llama-3.3-70b-versatile')})"
+            # The LLM can't lift a post past the rules' evidence caps.
+            if feats["parts"].get("organiser", 0) == 0:
+                final = min(final, scoring.WARM - 1)
+            if final >= scoring.HOT and feats["parts"].get("problem", 0) < 25 and not verdict.get("frustrated_with_platform"):
+                final = scoring.HOT - 1
+            scored_by = f"rules+llm ({os.getenv('LLM_MODEL') or 'llama-3.3-70b-versatile'})"
+            explanation += f"; LLM {verdict['score']} -> 0.4*rules + 0.6*LLM = {final}"
             why = verdict.get("why_contact") or why
             opener = verdict.get("opener") or opener
             pain = verdict.get("pain") or pain
             intent = verdict.get("intent") or intent
             competitor = verdict.get("platform") or competitor
+            llm_agrees = True
     elif verdict and verdict.get("error"):
         scored_by = f"rules (LLM error: {verdict['error'][:80]})"
 
     # Without a working LLM verdict the rules are the only judge, so they must clear a higher bar.
-    floor = min_keep if scored_by.startswith("rules+llm") else cfg.get("min_score_rules_only", 45)
+    floor = min_keep if llm_agrees else cfg.get("min_score_rules_only", 45)
     if final < floor:
-        return {"keep": False, "lead": None, "rule_score": feats["score"], "llm": verdict}
+        return {"keep": False, "lead": None, "rule_score": feats["score"], "llm": verdict,
+                "reason": f"below floor {floor}: {explanation}"}
 
-    profile = post.get("_profile") or (enrich_author(post["source"], post["author"]) if post.get("author") else {})
-    text = (post.get("text") or post.get("title") or "").replace("\n", " ")
-    quote = (verdict or {}).get("evidence_quote") if (verdict and verdict.get("grounded")) else None
+    text = " ".join((post.get("text") or post.get("title") or "").split())
+    quote = verdict.get("evidence_quote") if (verdict and verdict.get("grounded")) else _evidence_sentence(text, feats)
+    tier = scoring.priority(final)
     lead = {
         "first_seen_utc": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"),
-        "priority": scoring.priority(final),
+        "priority": tier,
         "score": final,
+        "confidence": _confidence(feats, llm_agrees),
+        "icp_fit": _icp_fit(feats),
+        "organisation_hint": _org_hint(profile),
+        "event_context": " · ".join(x for x in (feats["event_type"], feats["near_term"] and f"near-term: {feats['near_term']}") if x),
+        "competitor": competitor,
+        "problem": scoring.PAIN_LABEL.get(pain, pain),
+        "intent": intent,
+        "evidence_quote": (quote or "")[:300],
+        "score_explanation": explanation,
+        "evidence": " | ".join(f"{k}: {v}" for k, v in feats["evidence"].items())[:500],
+        "why_contact": why,
+        "next_action": NEXT_ACTION[tier],
+        "suggested_opener": opener,
         "source": post["source"],
         "community": post.get("community", ""),
-        "competitor": competitor,
-        "pain": pain,
-        "intent": intent,
-        "region": "/".join(feats["regions"]),
+        "url": post["url"],
+        "posted_utc": (post.get("created_utc") or "")[:16].replace("T", " "),
         "author": post.get("author", ""),
         "author_profile": post.get("author_url", ""),
         "author_context": _profile_line(profile),
+        "region": "/".join(feats["regions"]),
         "post_title": (post.get("title") or "")[:200],
-        "quote": (quote or text)[:300],
-        "url": post["url"],
-        "why_contact": why,
-        "suggested_opener": opener,
         "scored_by": scored_by,
-        "status": "",
+        "review_status": "",
         "lead_id": post["id"],
-        "posted_utc": (post.get("created_utc") or "")[:16].replace("T", " "),
     }
-    return {"keep": True, "lead": lead, "rule_score": feats["score"], "llm": verdict}
+    return {"keep": True, "lead": lead, "rule_score": feats["score"], "llm": verdict, "reason": explanation}
+
+
+NEXT_ACTION = {
+    "Hot": "Review today. If accepted, reply in the public thread with the opener; no DM unless invited. Log in CRM.",
+    "Warm": "Review this week. Check the profile/links for the organisation, then decide: reply, nurture or reject.",
+    "Watch": "No outreach. Kept for pattern analysis and rule tuning.",
+}
+
+
+def _evidence_sentence(text: str, feats: dict) -> str:
+    """The sentence that carries the strongest evidence (problem > organiser > platform), verbatim."""
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    for key in ("problem", "organiser", "platform"):
+        ev = feats["evidence"].get(key, "")
+        for needle in re.findall(r'"([^"]+)"', ev) or [ev.split(",")[0]]:
+            for s_ in sentences:
+                if needle and needle.lower() in s_.lower():
+                    return s_
+    return text[:300]
+
+
+def _confidence(feats: dict, llm_agrees: bool) -> str:
+    p = feats["parts"]
+    if p.get("organiser", 0) == 30 and p.get("problem", 0) == 25 and (p.get("platform", 0) == 15 or llm_agrees):
+        return "High"
+    if p.get("organiser", 0) >= 15 and p.get("problem", 0) >= 5:
+        return "Medium"
+    return "Low"
+
+
+def _icp_fit(feats: dict) -> str:
+    regions, et = set(feats["regions"]), feats["event_type"]
+    if regions & {"UAE", "India"} and et in ("festival/concert", "conference", "community/recurring", "venue/theatre"):
+        tier = "Primary ICP (UAE/India promoter or festival)"
+    elif "India" in regions and et in ("sports", "endurance"):
+        tier = "Secondary ICP (India sport)"
+    elif regions & {"UK", "US"}:
+        tier = "Self-serve market (UK/US)"
+    else:
+        tier = "Market unknown"
+    return f"{tier} · {et or 'event type unknown'}"
+
+
+def _org_hint(profile: dict) -> str:
+    """Never verified automatically: a website from the public profile is a hint for the reviewer."""
+    links = profile.get("links") or []
+    return f"unverified: {links[0]}" if links else ""
 
 
 def _profile_line(p: dict) -> str:
@@ -225,6 +305,55 @@ def sync_sheet() -> str:
         return f"error: {type(e).__name__}: {str(e)[:200]}"
     store.write_leads(leads)  # persist statuses pulled from the sheet
     return status
+
+
+@mcp.tool()
+def write_summary() -> dict:
+    """Recompute data/summary.json: the numbers the dashboard shows, all derived from stored data."""
+    leads, runs = store.read_leads(), store.read_runs()
+    def n(r, k):
+        try:
+            return int(r.get(k) or 0)
+        except ValueError:
+            return 0
+    ok_runs = [r for r in runs if r.get("status") in ("ok", "partial")]
+    by_trigger: dict[str, int] = {}
+    for r in runs:
+        by_trigger[r.get("trigger", "?")] = by_trigger.get(r.get("trigger", "?"), 0) + 1
+    last = runs[-1] if runs else {}
+    summary = {
+        "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+        "posts_processed_total": len(store.load_seen()),
+        "leads_total": len(leads),
+        "leads_by_priority": {t: sum(1 for l in leads if l["priority"] == t) for t in ("Hot", "Warm", "Watch")},
+        "unique_prospects": len({(l["source"], l["author"]) for l in leads if l.get("author")}),
+        "leads_reviewed": sum(1 for l in leads if l.get("review_status")),
+        "runs_logged": len(runs),
+        "runs_by_trigger": by_trigger,
+        "runs_by_status": {s_: sum(1 for r in runs if r.get("status") == s_) for s_ in ("ok", "partial", "failed")},
+        "last_successful_run_utc": ok_runs[-1]["finished_utc"] if ok_runs else None,
+        "last_run": {k: last.get(k) for k in ("finished_utc", "trigger", "status", "sources_ok", "sources_failed",
+                                               "sources_skipped", "discovered", "new", "qualified", "source_errors")},
+        "llm_enabled": llm.enabled(),
+        "llm_calls_total": sum(n(r, "llm_calls") for r in runs),
+        "sheet_push_enabled": sheets.enabled(),
+        "note": "posts_processed_total counts distinct posts ever scored (de-dup state). It was reset on 21 Oct "
+                "while scoring rules changed, so it undercounts the earliest runs.",
+    }
+    store.write_summary(summary)
+    return summary
+
+
+@mcp.tool()
+def export_to_crm(lead_ids: list[str], dry_run: bool = True) -> dict:
+    """Hand human-ACCEPTED leads to the CRM. Only call with ids a person has accepted in the sheet.
+    Not connected here (no Freshsales credentials): payloads go to data/crm_outbox.jsonl for checking.
+    Never sends messages to the prospect."""
+    from . import crm
+
+    wanted = set(lead_ids)
+    leads = [l for l in store.read_leads() if l["lead_id"] in wanted]
+    return crm.export(leads, dry_run=dry_run) | {"missing": sorted(wanted - {l["lead_id"] for l in leads})}
 
 
 # --------------------------------------------------------------------- ask

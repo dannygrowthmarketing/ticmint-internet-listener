@@ -51,6 +51,12 @@ a.card:hover{border-color:var(--accent)}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
 .kpi .v{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .kpi .l{color:var(--muted);font-size:13px}
+.kpi .h{color:var(--muted);font-size:11.5px;margin-top:4px;line-height:1.35}
+.kh{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:22px 0 10px}
+.na{font-size:15px;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)} .small{font-size:12.5px}
+.sources{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:14px;margin:4px 0 8px;line-height:1.8}
+.ok{color:var(--accent)} .bad{color:var(--hot)} .skip{color:var(--warm)}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
@@ -95,32 +101,63 @@ footer{color:var(--muted);font-size:13px;text-align:center;padding:32px 16px}
 
   <section class="live" id="live">
     <h2>Live output</h2>
-    <p class="sub">Loaded in your browser from the repo's <code>data/</code> folder, which the scheduled job commits after every run. <span id="updated"></span></p>
-    <div class="kpis" id="kpis"></div>
-    <div class="tablewrap"><table id="leads"><thead><tr><th>Priority</th><th>Score</th><th>Source</th><th>Platform · pain</th><th>What they said</th><th>Why contact</th></tr></thead><tbody><tr><td colspan="6" class="empty">Loading…</td></tr></tbody></table></div>
-    <h3 style="margin:26px 0 10px;font-size:16px">Last runs</h3>
-    <div class="tablewrap"><table id="runs"><thead><tr><th>Started (UTC)</th><th>Trigger</th><th>Fetched</th><th>New</th><th>Kept</th><th>Hot / Warm / Watch</th><th>LLM calls</th><th>Source errors</th></tr></thead><tbody></tbody></table></div>
+    <p class="sub">Read in your browser from the repo's <code>data/</code> folder (committed by every run) and from the GitHub Actions API (the workflow evidence). Anything that can't be loaded or measured shows as "unavailable". <span id="updated"></span></p>
+    <h3 class="kh">Lead pipeline</h3>
+    <div class="kpis" id="kpis-pipeline"></div>
+    <h3 class="kh">Runs (from GitHub Actions)</h3>
+    <div class="kpis" id="kpis-runs"></div>
+    <div id="sources" class="sources"></div>
+    <h3 class="kh">Qualified leads</h3>
+    <div class="tablewrap"><table id="leads"><thead><tr><th>Priority</th><th>Score · confidence</th><th>Platform · problem</th><th>Evidence (verbatim)</th><th>Why the score</th><th>Next action</th></tr></thead><tbody><tr><td colspan="6" class="empty">Loading…</td></tr></tbody></table></div>
+    <h3 class="kh">Run log</h3>
+    <div class="tablewrap"><table id="runs"><thead><tr><th>Finished (UTC)</th><th>Trigger</th><th>Status</th><th>Discovered</th><th>New (scored)</th><th>Qualified</th><th>H / W / W</th><th>LLM calls</th><th>Failed sources</th></tr></thead><tbody></tbody></table></div>
   </section>
 
   {{SECTIONS}}
 </main>
 <footer>Built with Claude Code. See the AI-use note for where it was right and where it wasn't.</footer>
 <script>
-const RAW = "https://raw.githubusercontent.com/dannygrowthmarketing/ticmint-internet-listener/main/data/";
+const REPO = "dannygrowthmarketing/ticmint-internet-listener";
+const RAW = `https://raw.githubusercontent.com/${REPO}/main/data/`;
 function parseCSV(t){const rows=[];let r=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){r.push(f);f=""}else if(c=='\n'){r.push(f);rows.push(r);r=[];f=""}else if(c!='\r')f+=c}if(f||r.length){r.push(f);rows.push(r)}const h=rows.shift()||[];return rows.filter(x=>x.length>1).map(x=>Object.fromEntries(h.map((k,i)=>[k,x[i]??""])))}
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-async function load(name){try{const r=await fetch(RAW+name+"?t="+Date.now());if(!r.ok)return[];return parseCSV(await r.text())}catch(e){return[]}}
+const NA='<span class="na">unavailable</span>';
+async function get(url,kind){try{const r=await fetch(url+(url.includes("?")?"&":"?")+"t="+Date.now());if(!r.ok)return null;return kind==="json"?await r.json():await r.text()}catch(e){return null}}
+const kpi=(v,l,hint)=>`<div class="kpi"><div class="v">${v===null||v===undefined?NA:esc(v)}</div><div class="l">${l}</div>${hint?`<div class="h">${hint}</div>`:""}</div>`;
 (async()=>{
-  const [leads,runs]=await Promise.all([load("leads.csv"),load("runs.csv")]);
+  const [leadsTxt,runsTxt,summary,actions]=await Promise.all([get(RAW+"leads.csv"),get(RAW+"runs.csv"),get(RAW+"summary.json","json"),
+    get(`https://api.github.com/repos/${REPO}/actions/workflows/listen.yml/runs?per_page=100`,"json")]);
+  const leads=leadsTxt?parseCSV(leadsTxt):null, runs=runsTxt?parseCSV(runsTxt):null;
+  const S=summary||{};
+  document.getElementById("kpis-pipeline").innerHTML=[
+    kpi(S.posts_processed_total,"Distinct posts scored","de-duplicated across runs"),
+    kpi(runs?runs.slice(-1)[0]?.discovered:null,"Posts discovered, last run","unique posts the sources returned"),
+    kpi(leads?leads.length:null,"Qualified leads","cleared the evidence bar"),
+    kpi(leads?["Hot","Warm","Watch"].map(t=>leads.filter(l=>l.priority===t).length).join(" / "):null,"Hot / Warm / Watch",""),
+    kpi(S.unique_prospects,"Unique prospects","distinct authors"),
+    kpi(S.leads_reviewed,"Leads reviewed by a human","review_status set"),
+  ].join("");
+  let runK;
+  if(actions&&actions.workflow_runs){
+    const w=actions.workflow_runs, done=w.filter(r=>r.status==="completed");
+    const sched=done.filter(r=>r.event==="schedule"), ok=done.filter(r=>r.conclusion==="success");
+    const lastOk=ok[0];
+    runK=[kpi(sched.filter(r=>r.conclusion==="success").length,"Scheduled runs succeeded",sched.length?"":"none yet: cron fires at 00:17, 06:17, 12:17, 18:17 UTC"),
+          kpi(done.filter(r=>r.event!=="schedule").length,"Push / manual runs",""),
+          kpi(done.filter(r=>r.conclusion&&r.conclusion!=="success").length,"Failed workflow runs",""),
+          kpi(lastOk?lastOk.updated_at.replace("T"," ").slice(0,16)+" UTC":null,"Last successful run",lastOk?esc(lastOk.event):"")];
+  }else{
+    runK=[kpi(null,"Scheduled runs succeeded","GitHub API rate limit or offline"),kpi(runs?runs.filter(r=>r.trigger==="schedule").length:null,"Scheduled runs in run log",""),kpi(null,"Failed workflow runs",""),kpi(S.last_successful_run_utc,"Last successful run (run log)","")];
+  }
+  document.getElementById("kpis-runs").innerHTML=runK.join("");
+  const L=S.last_run||{};
+  if(S.last_run){const tag=(xs,c)=>(xs||"").split(" ").filter(Boolean).map(x=>`<span class="pill ${c}">${esc(x)}</span>`).join(" ");
+    document.getElementById("sources").innerHTML=`<b>Sources, last run:</b> ${tag(L.sources_ok,"ok")} ${tag(L.sources_failed,"bad")} ${tag(L.sources_skipped,"skip")}<br><span class="muted">${esc((L.source_errors||"").slice(0,260))}</span><br><span class="muted">LLM check: ${S.llm_enabled?"on":"off (no key configured), rules decide alone"} · Sheet push: ${S.sheet_push_enabled?"on":"off; the Sheet pulls this data with IMPORTDATA"}</span>`;}
   const lb=document.querySelector("#leads tbody");
-  lb.innerHTML=leads.length?leads.slice(0,25).map(l=>`<tr><td><span class="pill ${esc(l.priority)}">${esc(l.priority)}</span></td><td>${esc(l.score)}</td><td>${esc(l.source)}<br><span style="color:var(--muted)">${esc(l.community)}</span></td><td>${esc(l.competitor)||"–"}<br><span style="color:var(--muted)">${esc(l.pain)}</span></td><td><a href="${esc(l.url)}" rel="noopener">${esc((l.post_title||l.quote).slice(0,90))}</a><br><span style="color:var(--muted)">${esc(l.quote.slice(0,160))}</span></td><td>${esc(l.why_contact)}</td></tr>`).join(""):`<tr><td colspan="6" class="empty">No leads cleared the bar in the current window yet. See the run log below for what was fetched and why.</td></tr>`;
+  lb.innerHTML=leads===null?`<tr><td colspan="6" class="empty">${NA}</td></tr>`:leads.length?leads.slice(0,25).map(l=>`<tr><td><span class="pill ${esc(l.priority)}">${esc(l.priority)}</span></td><td>${esc(l.score)} · ${esc(l.confidence)}</td><td>${esc(l.competitor)||"–"}<br><span class="muted">${esc(l.problem)}</span></td><td><a href="${esc(l.url)}" rel="noopener">“${esc((l.evidence_quote||"").slice(0,160))}”</a><br><span class="muted">${esc(l.source)} · ${esc(l.community)} · ${esc(l.posted_utc)}</span></td><td class="small">${esc(l.score_explanation)}</td><td class="small">${esc(l.next_action)}</td></tr>`).join(""):`<tr><td colspan="6" class="empty">No post has cleared the evidence bar yet.</td></tr>`;
   const rb=document.querySelector("#runs tbody");
-  const recent=runs.slice().reverse();
-  rb.innerHTML=recent.slice(0,12).map(r=>`<tr><td>${esc(r.started_utc)}</td><td>${esc(r.trigger)}</td><td>${esc(r.fetched)}</td><td>${esc(r.new)}</td><td>${esc(r.kept)}</td><td>${esc(r.hot)} / ${esc(r.warm)} / ${esc(r.watch)}</td><td>${esc(r.llm_calls)}</td><td style="color:var(--muted);font-size:12px">${esc((r.source_errors||"").slice(0,140))}</td></tr>`).join("");
-  const sched=runs.filter(r=>r.trigger==="schedule").length;
-  const k=[["Runs logged",runs.length],["Scheduled runs",sched],["Posts fetched",runs.reduce((a,r)=>a+(+r.fetched||0),0)],["Leads in sheet",leads.length],["Hot leads",leads.filter(l=>l.priority==="Hot").length]];
-  document.getElementById("kpis").innerHTML=k.map(([l,v])=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
-  if(recent[0])document.getElementById("updated").textContent="Last run: "+recent[0].finished_utc+" UTC.";
+  rb.innerHTML=runs?runs.slice().reverse().slice(0,12).map(r=>`<tr><td>${esc(r.finished_utc)}</td><td>${esc(r.trigger)}</td><td><span class="pill ${r.status==="ok"?"ok":r.status==="failed"?"bad":"skip"}">${esc(r.status)}</span></td><td>${esc(r.discovered)}</td><td>${esc(r.new)}</td><td>${esc(r.qualified)}</td><td>${esc(r.hot)} / ${esc(r.warm)} / ${esc(r.watch)}</td><td>${esc(r.llm_calls)}</td><td class="small muted">${esc(r.sources_failed)}</td></tr>`).join(""):`<tr><td colspan="9" class="empty">${NA}</td></tr>`;
+  if(S.generated_utc)document.getElementById("updated").textContent="Data generated "+S.generated_utc+" UTC.";
 })();
 </script>
 </body>
