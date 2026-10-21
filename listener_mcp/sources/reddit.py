@@ -73,10 +73,13 @@ def search(query: str, since_ts: int, limit: int = 25, subreddits: list[str] | N
     if not posts and errors:
         # Reddit blocks unauthenticated requests from most cloud IPs (GitHub Actions
         # included). Fall back to PullPush, a free public archive of Reddit.
-        try:
-            return _pullpush(query, since_ts, limit)
-        except SourceError as e:
-            raise SourceError(f"{errors[0]}; pullpush fallback: {e}")
+        fallbacks = []
+        for fn in (_pullpush, _rss):
+            try:
+                return fn(query, since_ts, limit)
+            except SourceError as e:
+                fallbacks.append(f"{fn.__name__.strip('_')}: {e}")
+        raise SourceError("; ".join([errors[0]] + fallbacks))
     return list(posts.values())
 
 
@@ -118,3 +121,33 @@ def profile(username: str) -> dict:
         "bio": (sub.get("public_description") or "")[:400],
         "links": [],
     }
+
+
+def _rss(query: str, since_ts: int, limit: int) -> list[dict]:
+    """Last resort: Reddit's Atom search feed (no selftext score, but title + body summary)."""
+    import xml.etree.ElementTree as ET
+
+    from ..http import client
+
+    r = client().get("https://www.reddit.com/search.rss", params={"q": query, "sort": "new", "limit": limit},
+                     headers={"Accept": "application/atom+xml"})
+    if r.status_code != 200:
+        raise SourceError(f"https://www.reddit.com/search.rss -> HTTP {r.status_code}")
+    ns = {"a": "http://www.w3.org/2005/Atom"}
+    posts = []
+    for e in ET.fromstring(r.text).findall("a:entry", ns):
+        updated = datetime.fromisoformat(e.findtext("a:updated", "", ns).replace("Z", "+00:00"))
+        if updated.timestamp() < since_ts:
+            continue
+        author = (e.findtext("a:author/a:name", "", ns) or "").removeprefix("/u/")
+        link = e.find("a:link", ns).get("href")
+        cat = e.find("a:category", ns)
+        posts.append({
+            "id": "reddit:" + e.findtext("a:id", "", ns).removeprefix("t3_"),
+            "source": "reddit", "url": link, "author": author,
+            "author_url": f"https://www.reddit.com/user/{author}",
+            "title": e.findtext("a:title", "", ns), "text": clean_html(e.findtext("a:content", "", ns)),
+            "created_utc": updated.isoformat(),
+            "community": f"r/{cat.get('term')}" if cat is not None else "reddit", "raw_score": 0,
+        })
+    return posts

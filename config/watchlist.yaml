@@ -6,7 +6,8 @@
 
 lookback_hours: 720        # 30 days; the de-dup state means each post is only ever scored once
 max_per_query: 25
-min_score_to_keep: 30      # below this a post is dropped, not written to the sheet
+min_score_to_keep: 30      # rule score needed to reach the LLM; the LLM-blended score must also clear it
+min_score_rules_only: 45   # stricter bar when no LLM verdict is available (no key, quota hit, ungrounded answer)
 
 queries:
   # Competitor + pain

@@ -146,7 +146,9 @@ def qualify_post(post: dict, use_llm: bool = True) -> dict:
     elif verdict and verdict.get("error"):
         scored_by = f"rules (LLM error: {verdict['error'][:80]})"
 
-    if final < min_keep:
+    # Without a working LLM verdict the rules are the only judge, so they must clear a higher bar.
+    floor = min_keep if scored_by.startswith("rules+llm") else cfg.get("min_score_rules_only", 45)
+    if final < floor:
         return {"keep": False, "lead": None, "rule_score": feats["score"], "llm": verdict}
 
     profile = post.get("_profile") or (enrich_author(post["source"], post["author"]) if post.get("author") else {})
