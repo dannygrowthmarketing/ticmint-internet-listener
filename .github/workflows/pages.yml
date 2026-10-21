@@ -2,7 +2,7 @@ name: pages
 on:
   push:
     branches: [main]
-    paths: ["docs/**"]
+    paths: ["docs/**", "README.md"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,8 +19,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Bundle site (the page reads live data from the repo at view time)
-        run: mkdir -p _site && cp -r docs/* _site/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build site (the page reads live data from the repo at view time)
+        run: pip install markdown && python docs/build.py
       - uses: actions/configure-pages@v5
         with:
           enablement: true
