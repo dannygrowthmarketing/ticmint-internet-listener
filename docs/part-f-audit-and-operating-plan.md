@@ -151,7 +151,7 @@ Compare cost per demo and demo-to-opportunity rate against other channels in Par
 | | Evidence-based scoring, failure handling, de-duplication, review preservation | 25 passing tests |
 | | Live site | https://dannygrowthmarketing.github.io/ticmint-internet-listener/ (fetched after deploy) |
 | | Google Sheet exists with IMPORTDATA formulas, shared with Daniel | Drive file 1IJpp71O… |
-| **Implemented, not yet verified** | **Scheduled (cron) runs** | Configured; no `schedule` run recorded yet. Will be marked verified only when one appears in the Actions history |
+| **Implemented, not yet verified** | **Scheduled (cron) runs** | Workflow is active with cron `17 */6 * * *` on `main`, but the first slot (12:17 UTC, 21 Oct) produced **no run** (Actions API checked 12:41 UTC). GitHub runs cron on a best-effort basis and often skips or delays the first slots on a new repo. Marked verified only when a `schedule` run appears in the Actions history |
 | | Sheet data actually loading | Shows `#REF!` until an editor clicks **Allow access** |
 | | LLM qualification | Code and tests exist; 0 real calls (no key) |
 | | Bluesky source | Code exists; no credentials |
