@@ -83,5 +83,37 @@
    "author": "fixture_dubai",
    "karma": 300
   }
+ },
+ {
+  "id": "reddit:fx6",
+  "source": "reddit",
+  "url": "https://www.reddit.com/r/EventbriteSupport/comments/fx6",
+  "author": "fixture_suspended",
+  "author_url": "https://www.reddit.com/user/fixture_suspended",
+  "title": "HELP - Account randomly suspended 5 days before an event",
+  "text": "My eventbrite account wss suspended. I am guessing it was from posting multiple events at once. I pay a monthly fee for my account and support hasn't replied. My event is on Saturday.",
+  "created_utc": "2026-10-21T05:30:46.204506+00:00",
+  "community": "r/EventbriteSupport",
+  "raw_score": 4,
+  "_profile": {
+   "author": "fixture_suspended",
+   "karma": 50
+  }
+ },
+ {
+  "id": "reddit:fx7",
+  "source": "reddit",
+  "url": "https://www.reddit.com/r/Ottawa/comments/fx7",
+  "author": "fixture_host",
+  "author_url": "https://www.reddit.com/user/fixture_host",
+  "title": "Crafting Event in Ottawa This Weekend!",
+  "text": "I'm hosting a beginner-friendly jewelry box workshop! Come solo or bring a friend! All materials included. Tickets are $45 on Eventbrite, fees included. Link in comments.",
+  "created_utc": "2026-10-21T00:30:46.204506+00:00",
+  "community": "r/Ottawa",
+  "raw_score": 3,
+  "_profile": {
+   "author": "fixture_host",
+   "karma": 12
+  }
  }
 ]

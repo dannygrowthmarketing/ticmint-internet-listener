@@ -32,6 +32,7 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
     posts: dict[str, dict] = {}
     errors: dict[str, str] = {}
     dead_sources: set[str] = set()
+    crossposts: set = set()
     for source, q in jobs:
         if source in dead_sources:
             continue
@@ -43,6 +44,11 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
                 dead_sources.add(source)
             continue
         for p in res["posts"]:
+            # Cross-posts: same author + title in several subreddits count once.
+            key = (p["source"], p.get("author"), (p.get("title") or "").strip().lower()) if p.get("title") else p["id"]
+            if key in crossposts:
+                continue
+            crossposts.add(key)
             posts.setdefault(p["id"], p)
     run["fetched"] = len(posts)
     log(f"[collect] {len(posts)} unique posts; source errors: {errors or 'none'}")

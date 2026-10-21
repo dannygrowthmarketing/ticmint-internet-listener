@@ -23,8 +23,8 @@ PAIN = {
                    r"no response", r"chatbot", r"ticket(ed)? (with|to) support"),
     "data_ownership": _rx(r"(own|owning|my|our) (attendee|customer|audience) (data|list|emails?)", r"attendee data",
                           r"email list", r"they own", r"marketplace", r"my brand", r"white[- ]?label", r"custom domain"),
-    "account_risk": _rx(r"(account|event) (was )?(suspended|banned|deactivated|removed|taken down|closed)",
-                        r"flagged", r"locked out"),
+    "account_risk": _rx(r"(account|event)\W+(\w+\W+){0,2}(suspended|banned|deactivated|removed|taken down|closed|disabled|frozen)",
+                        r"\bsuspended\b", r"flagged", r"locked out"),
     "refunds": _rx(r"refunds?", r"chargebacks?", r"cancell?ation"),
     "checkout_ux": _rx(r"checkout", r"clunky", r"confusing", r"buggy", r"glitch", r"crash(ed|es)?", r"slow",
                        r"(seat|seating) (map|chart)", r"scann?(er|ing)", r"qr code"),
@@ -47,8 +47,20 @@ SWITCHING = _rx(
     r"\balternatives?\b", r"\bswitch(ing|ed)? (from|away|to)\b", r"\bmov(e|ing|ed) (away )?from\b", r"\bleav(e|ing)\b",
     r"\bany (recommendations|suggestions)\b", r"\b(what|which) (do you|does everyone|platform|ticketing)\b.*\b(use|recommend)\b",
     r"\blooking for (a |an )?(new |better |cheaper )?(ticketing|platform|way to sell)\b", r"\brecommend\b", r"\bvs\.?\b",
-    r"\bbetter than\b", r"\bfed up\b", r"\bnever (again|using)\b", r"\bdone with\b",
+    r"\bbetter than\b", r"\bis there (a|an|any)\b[^.?!]{0,40}\b(option|alternative|platform|way|tool)\b", r"\bfed up\b", r"\bnever (again|using)\b", r"\bdone with\b",
 )
+
+# Something is actually wrong (as opposed to a topic merely being mentioned).
+PROBLEM = _rx(r"\bhelp\b", r"still waiting", r"\bwon'?t\b", r"\bcan'?t\b", r"\bhasn'?t\b", r"\bhaven'?t (been|received|got)",
+              r"\bno (reply|response|answer|one)\b", r"\bsuspended\b", r"\bproblem\b", r"\bissue\b", r"\bcomplain",
+              r"\bwhy (does|is|did)\b", r"\btoo (high|much|expensive)\b", r"\bcharg(ed|ing) (me|us)\b", r"\bunacceptable\b")
+
+# Event promotion: the organiser is *using* a platform happily and advertising an event.
+# Useful later as a "who uses Eventbrite" list, but not a frustration lead.
+PROMO = _rx(r"get your tickets", r"tickets? (are )?(available|on sale) (now|at|here)", r"\blink in (bio|comments)\b", r"\brsvp\b",
+            r"come (solo|join|out|along)", r"this weekend", r"one night only", r"doors open", r"\bline-?up\b",
+            r"what'?s (going on|happening)", r"events? for (fri|sat|sun|mon|tue|wed|thu)", r"don'?t miss", r"\bfeaturing\b",
+            r"agencies", r"\bcurated list\b", r"\btop \d+\b")
 
 ANGER = _rx(r"\bhate\b", r"terrible", r"awful", r"nightmare", r"ridiculous", r"\bscam\b", r"frustrat", r"annoy", r"insane",
             r"robbery", r"daylight robbery", r"disgust", r"useless", r"worst", r"absurd", r"greedy", r"predatory")
@@ -72,7 +84,8 @@ REGIONS = {
 TICKETING = _rx(r"\btickets?\b", r"\bticketing\b", r"\bbox office\b", r"\bregistration (platform|page|fees?|system)\b",
                 r"\bsell(ing)? out\b", r"\bticket sales\b")
 
-ORGANISER_COMMUNITIES = {"r/eventprofs", "r/eventmanagement", "r/promoters", "r/bandmembers", "#eventprofs"}
+ORGANISER_COMMUNITIES = {"r/eventprofs", "r/eventmanagement", "r/promoters", "r/bandmembers", "#eventprofs",
+                         "r/eventbritesupport", "r/eventbrite"}
 
 
 def detect_competitors(text: str, competitors: dict[str, list[str]]) -> list[str]:
@@ -96,6 +109,9 @@ def score(post: dict, competitors: dict[str, list[str]], now: datetime | None = 
     fan = bool(FAN.search(text))
     switching = bool(SWITCHING.search(text))
     anger = bool(ANGER.search(text))
+    problem = bool(PROBLEM.search(text))
+    promo = bool(PROMO.search(text))
+    frustrated = anger or switching or problem
     noise = bool(NOISE.search(text))
     regions = [r for r, rx in REGIONS.items() if rx.search(f"{text} {community}")]
 
@@ -106,7 +122,8 @@ def score(post: dict, competitors: dict[str, list[str]], now: datetime | None = 
         if comps == ["Ticketmaster"] and not organiser:
             s -= 20
     if pains:
-        s += 15 + min(10, 5 * (len(pains) - 1))
+        # A pain topic only counts in full when something is actually wrong.
+        s += (15 + min(10, 5 * (len(pains) - 1))) if frustrated else 3
     if organiser:
         s += 25
     if fan and not organiser:
@@ -117,6 +134,10 @@ def score(post: dict, competitors: dict[str, list[str]], now: datetime | None = 
         s += 10
     if noise:
         s -= 15
+    if promo and not (anger or switching):
+        s -= 25
+    if "account_risk" in pains and organiser:
+        s += 15  # an organiser whose account was just pulled needs a platform this week
     if community in ORGANISER_COMMUNITIES:
         s += 5
     try:

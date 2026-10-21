@@ -43,3 +43,12 @@ def test_llm_grounding_rejects_invented_quote():
     assert not bad["grounded"] and len(bad["grounding_problems"]) == 2
     good = llm.verify({"evidence_quote": "support never replies", "platform": "Eventbrite", "score": 88}, body)
     assert good["grounded"] and good["score"] == 88
+
+
+def test_suspended_organiser_is_hot_despite_typo():
+    f = s("reddit:fx6")
+    assert "account_risk" in f["pain_categories"] and scoring.priority(f["score"]) == "Hot"
+
+
+def test_happy_event_promotion_is_dropped():
+    assert s("reddit:fx7")["score"] < watchlist()["min_score_rules_only"]

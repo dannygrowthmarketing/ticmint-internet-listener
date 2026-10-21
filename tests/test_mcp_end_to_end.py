@@ -31,11 +31,11 @@ def test_full_cycle(tmp_path):
     env |= {"LISTENER_FIXTURES": str(ROOT / "tests/fixtures/posts.json"), "LISTENER_DATA_DIR": str(tmp_path),
             "PYTHONPATH": str(ROOT)}
     run1 = asyncio.run(_cycle(env))
-    assert run1["fetched"] == 5 and run1["new"] == 5
+    assert run1["fetched"] == 7 and run1["new"] == 7
     leads = list(csv.DictReader((tmp_path / "leads.csv").open()))
     ids = {l["lead_id"] for l in leads}
-    assert {"reddit:fx1", "hackernews:fx2", "reddit:fx5"} <= ids
-    assert "reddit:fx3" not in ids and "hackernews:fx4" not in ids
+    assert {"reddit:fx1", "hackernews:fx2", "reddit:fx5", "reddit:fx6"} <= ids
+    assert not ids & {"reddit:fx3", "hackernews:fx4", "reddit:fx7"}
     assert run1["sheet_status"].startswith("skipped")
 
     run2 = asyncio.run(_cycle(env))
