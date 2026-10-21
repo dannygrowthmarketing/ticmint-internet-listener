@@ -99,7 +99,7 @@ None of these have values yet beyond what the run log shows. Where a number exis
 | Metric | Definition | Source | Today |
 |---|---|---|---|
 | Collection success rate | source calls that returned data ÷ calls attempted, per source | runs.csv `sources_ok/failed` | HN, Mastodon OK; Reddit blocked; Bluesky skipped |
-| Scheduled run success | scheduled runs with status ok or partial ÷ scheduled runs | Actions API + runs.csv | **Not measured yet** (first cron slot 12:17 UTC 21 Oct) |
+| Scheduled run success | scheduled runs with status ok or partial ÷ scheduled runs | Actions API + runs.csv | 1 of 1 so far (slot 12:17 fired at 17:12 UTC); too few to call a rate |
 | Relevant-post rate | shortlisted ÷ new | runs.csv | Per run in the log |
 | Qualification rate | qualified ÷ new | runs.csv | Per run in the log |
 | Duplicate rate | rows rejected as already seen ÷ discovered | `discovered − new` | Per run in the log |
@@ -151,9 +151,9 @@ Compare cost per demo and demo-to-opportunity rate against other channels in Par
 | | Evidence-based scoring, failure handling, de-duplication, review preservation | 25 passing tests |
 | | Live site | https://dannygrowthmarketing.github.io/ticmint-internet-listener/ (fetched after deploy) |
 | | Google Sheet exists with IMPORTDATA formulas, shared with Daniel | Drive file 1IJpp71O… |
-| **Implemented, not yet verified** | **Scheduled (cron) runs** | Workflow is active with cron `17 */6 * * *` on `main`, but the first slot (12:17 UTC, 21 Oct) produced **no run** (Actions API checked 12:41 UTC). GitHub runs cron on a best-effort basis and often skips or delays the first slots on a new repo. Marked verified only when a `schedule` run appears in the Actions history. Fallback: an external check at :47 dispatches the workflow if no run started; a manual dispatch succeeded at 14:06 UTC ([run](https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/runs/39613916057)) |
-| | Sheet data actually loading | Shows `#REF!` until an editor clicks **Allow access** |
-| | LLM qualification | Code and tests exist; 0 real calls (no key) |
+| | **Scheduled (cron) runs**, with a delay | First `schedule` run fired at 17:12 UTC on 21 Oct ([run](https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/runs/39641747829), success): the 12:17 slot, about 5 hours late. GitHub cron is best effort, so a fallback check at :47 past each slot dispatches the workflow if nothing started (tested 14:06 and 18:48 UTC); those runs are logged as `workflow_dispatch` |
+| | Sheet loads live data | Read back on 21 Oct 14:22 UTC: Leads, Hot queue and Run log populated from the repo CSVs |
+| **Implemented, not yet verified** | LLM qualification | Code and tests exist; 0 real calls (no key) |
 | | Bluesky source | Code exists; no credentials |
 | **Proposed** | Event-listing monitor, Freshsales sync, company enrichment, weekly digest, feedback re-weighting | Sections F7, F8 and README "What I'd build next" |
 | **Blocked** | Reddit | 403/429 from GitHub Actions IPs; needs Reddit OAuth app |
@@ -167,9 +167,9 @@ Compare cost per demo and demo-to-opportunity rate against other channels in Par
 - [x] Tests pass locally and in CI
 - [x] Site deployed and reachable
 - [x] Sheet created and shared
-- [ ] An editor clicks **Allow access** in the sheet so the formulas load
+- [x] An editor clicks **Allow access** in the sheet so the formulas load
 - [ ] Sheet link sharing set to "Anyone with the link: Viewer" (so reviewers can open it)
-- [ ] First scheduled run confirmed in the Actions history
+- [x] First scheduled run confirmed in the Actions history ([17:12 UTC, 21 Oct](https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/runs/39641747829); about 5 hours late)
 - [ ] `LLM_API_KEY` (and `LLM_BASE_URL`, `LLM_MODEL`) set as repo secrets/variables
 - [ ] Optional: `BSKY_HANDLE`/`BSKY_APP_PASSWORD`, `REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET`
 - [ ] Part E personal figures filled in by Daniel
