@@ -1,0 +1,87 @@
+[
+ {
+  "id": "reddit:fx1",
+  "source": "reddit",
+  "url": "https://www.reddit.com/r/eventprofs/comments/fx1",
+  "author": "fixture_promoter",
+  "author_url": "https://www.reddit.com/user/fixture_promoter",
+  "title": "Eventbrite fees are killing our club nights - alternatives?",
+  "text": "We run monthly club nights in Manchester, about 300 tickets each. Eventbrite now takes way more in fees than last year and support never replies. Any recommendations for a cheaper ticketing platform where we keep our attendee emails?",
+  "created_utc": "2026-10-21T03:17:29.231182+00:00",
+  "community": "r/eventprofs",
+  "raw_score": 12,
+  "_profile": {
+   "author": "fixture_promoter",
+   "karma": 1450,
+   "account_created": "2019-03-01",
+   "bio": "",
+   "links": []
+  }
+ },
+ {
+  "id": "hackernews:fx2",
+  "source": "hackernews",
+  "url": "https://news.ycombinator.com/item?id=fx2",
+  "author": "fixture_conf",
+  "author_url": "https://news.ycombinator.com/user?id=fixture_conf",
+  "title": "Ask HN: Ticketing for a 400-person dev conference?",
+  "text": "I'm organising a conference in London next spring. Tito shut down for new signups and Eventbrite payout only happens after the event, which wrecks our cash flow. What do you use?",
+  "created_utc": "2026-10-20T02:17:29.231182+00:00",
+  "community": "Ask HN",
+  "raw_score": 40,
+  "_profile": {
+   "author": "fixture_conf",
+   "karma": 5200,
+   "bio": "Organiser of a dev conf",
+   "links": []
+  }
+ },
+ {
+  "id": "reddit:fx3",
+  "source": "reddit",
+  "url": "https://www.reddit.com/r/concerts/comments/fx3",
+  "author": "fixture_fan",
+  "author_url": "https://www.reddit.com/user/fixture_fan",
+  "title": "Ticketmaster fees are a scam",
+  "text": "I bought two tickets for Oasis and the fees were insane. The queue was a nightmare too. Scalpers everywhere on resale.",
+  "created_utc": "2026-10-20T22:17:29.231182+00:00",
+  "community": "r/concerts",
+  "raw_score": 300,
+  "_profile": {
+   "author": "fixture_fan",
+   "karma": 20
+  }
+ },
+ {
+  "id": "hackernews:fx4",
+  "source": "hackernews",
+  "url": "https://news.ycombinator.com/item?id=fx4",
+  "author": "fixture_dev",
+  "author_url": "https://news.ycombinator.com/user?id=fixture_dev",
+  "title": "Show HN: An Eventbrite API scraper",
+  "text": "Show HN: I built a scraper on GitHub for the Eventbrite API to pull public events.",
+  "created_utc": "2026-10-20T20:17:29.231182+00:00",
+  "community": "Show HN",
+  "raw_score": 5,
+  "_profile": {
+   "author": "fixture_dev",
+   "karma": 90
+  }
+ },
+ {
+  "id": "reddit:fx5",
+  "source": "reddit",
+  "url": "https://www.reddit.com/r/dubai/comments/fx5",
+  "author": "fixture_dubai",
+  "author_url": "https://www.reddit.com/user/fixture_dubai",
+  "title": "Platinumlist for our wellness festival?",
+  "text": "We're hosting a small wellness festival in Dubai and need DTCM permits. Platinumlist wants a big commission and keeps the attendee data. Is there a white label option?",
+  "created_utc": "2026-10-19T06:17:29.231182+00:00",
+  "community": "r/dubai",
+  "raw_score": 8,
+  "_profile": {
+   "author": "fixture_dubai",
+   "karma": 300
+  }
+ }
+]

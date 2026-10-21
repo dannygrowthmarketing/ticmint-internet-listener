@@ -1,0 +1,70 @@
+# What the listener looks for. Edit this file, not the code.
+#
+# Queries are deliberately organiser-side ("eventbrite fees", "ticketing platform
+# for my event") rather than brand-only ("eventbrite"), because brand-only searches
+# are 90%+ fans complaining about a ticket they bought.
+
+lookback_hours: 168        # first run looks back a week; later runs only keep posts they haven't seen
+max_per_query: 25
+min_score_to_keep: 30      # below this a post is dropped, not written to the sheet
+
+queries:
+  # Competitor + pain
+  - eventbrite fees
+  - eventbrite alternative
+  - eventbrite payout
+  - eventbrite support
+  - leaving eventbrite
+  - ticket tailor alternative
+  - ticketsource alternative
+  - dice organiser fees
+  - skiddle fees
+  - fatsoma fees
+  - humanitix alternative
+  - platinumlist organiser
+  - bookmyshow organiser
+  - townscript
+  - konfhub
+  - luma events alternative
+  # Category intent, no competitor named
+  - ticketing platform for my event
+  - best ticketing platform small events
+  - selling tickets for my event
+  - white label ticketing
+  - event ticketing fees too high
+  - recommend ticketing software festival
+  - ticketing for conference organisers
+
+reddit:
+  # Searched site-wide plus these organiser-heavy subreddits
+  subreddits: [eventprofs, EventManagement, Bandmembers, WeddingPlanning, smallbusiness, Entrepreneur, festivals, london, dubai, india, bangalore, mumbai, theatre, comedy, Promoters, EDMproduction, Djs]
+
+mastodon:
+  instance: https://mastodon.social
+  hashtags: [eventbrite, eventprofs, eventplanning, ticketing]
+
+competitors:
+  # name -> aliases (lowercase). Order matters only for display.
+  Eventbrite: [eventbrite]
+  Ticket Tailor: [ticket tailor, tickettailor]
+  TicketSource: [ticketsource]
+  DICE: [dice.fm, " dice "]
+  Skiddle: [skiddle]
+  Fatsoma: [fatsoma]
+  See Tickets: [see tickets, seetickets]
+  Universe: [universe.com]
+  Tixr: [tixr]
+  Humanitix: [humanitix]
+  Ticketleap: [ticketleap]
+  Ticketspice: [ticketspice]
+  Brown Paper Tickets: [brown paper tickets]
+  Luma: [lu.ma, " luma "]
+  Zeffy: [zeffy]
+  Billetto: [billetto]
+  Platinumlist: [platinumlist]
+  BookMyShow: [bookmyshow, book my show]
+  District: [district app, district by zomato]
+  Townscript: [townscript]
+  KonfHub: [konfhub]
+  Allevents: [allevents]
+  Ticketmaster: [ticketmaster]
