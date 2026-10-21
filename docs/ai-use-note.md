@@ -12,7 +12,6 @@ This whole submission was built with Claude Code: the code, the first drafts of 
 3. **SDK drift.** It wrote against the MCP Python SDK 1.x API (`FastMCP`) while the installed version was 2.3, where it's renamed. It pinned `mcp<2` rather than learn the new API under deadline. A defensible call, but the code wasn't right first time.
 4. **A regex it was sure about.** The organiser pattern missed "I'm organising a conference". The fixture test caught it, which is why the tests exist.
 5. **Platform permissions.** It assumed the GitHub integration could create the repository. It couldn't (403), so I created it by hand.
-
 6. **Its own success metrics.** It put "951 posts fetched" on the dashboard, a sum that counted the same posts up to seven times, and called the schedule "running" before cron had fired once. It also kept a Hacker News comment about a bomb threat as a lead because it contained "sell tickets", and logged run 8 as `ok` while Reddit was rate-limited. An audit on 21 Oct caught all four; the fixes and tests are in [Part F](part-f-audit-and-operating-plan.md).
 7. **"The Sheet refreshes itself."** The linked sheet was empty: the Apps Script it relied on had never been run. Replaced with formula-based import.
 
