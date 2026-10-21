@@ -147,7 +147,7 @@ Compare cost per demo and demo-to-opportunity rate against other channels in Par
 | Status | Item | Evidence |
 |---|---|---|
 | **Implemented and verified** | Custom MCP server with 14 tools, driven over stdio by the agent | `test_mcp_end_to_end.py`; every Actions run log prints the tool list |
-| | GitHub Actions job runs, scores, commits data | 8+ runs in [`data/runs.csv`](../data/runs.csv), all `push`-triggered |
+| | GitHub Actions job runs, scores, commits data | 11+ runs in [`data/runs.csv`](../data/runs.csv): `push`, `workflow_dispatch` and `schedule` triggers |
 | | Evidence-based scoring, failure handling, de-duplication, review preservation | 25 passing tests |
 | | Live site | https://dannygrowthmarketing.github.io/ticmint-internet-listener/ (fetched after deploy) |
 | | Google Sheet exists with IMPORTDATA formulas, shared with Daniel | Drive file 1IJpp71O… |
