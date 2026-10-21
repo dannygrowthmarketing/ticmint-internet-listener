@@ -53,6 +53,21 @@ def test_one_blocked_source_does_not_lose_the_others():
     assert [l["lead_id"] for l in store.read_leads()] == ["hackernews:fx2"]
 
 
+class Flaky(Tools):
+    """Reddit answers the first query, then rate-limits (what run 8 on 21 Oct actually did)."""
+
+    async def call(self, name, **kw):
+        if name == "search_source" and kw["source"] == "reddit":
+            self.n = getattr(self, "n", 0) + 1
+            return {"posts": [], "error": None} if self.n == 1 else {"posts": [], "error": "HTTP 429"}
+        return await super().call(name, **kw)
+
+
+def test_source_failing_midway_marks_run_partial():
+    r = run(Flaky({"hackernews": {"posts": [], "error": None}, "mastodon": {"posts": [], "error": None}}))
+    assert r["status"] == "partial" and "reddit: HTTP 429" in r["source_errors"]
+
+
 def test_all_sources_down_is_a_failed_run():
     r = run(Tools({s: {"posts": [], "error": "HTTP 503"} for s in ("hackernews", "reddit", "mastodon")}))
     assert r["status"] == "failed" and r["qualified"] == 0

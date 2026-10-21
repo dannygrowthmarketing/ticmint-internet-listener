@@ -99,6 +99,9 @@ def _migrate(r: dict) -> dict:
             r["sources_skipped"] = "bluesky" if "bluesky skipped" in (r.get("source_errors") or "") else ""
             r["sources_ok"] = " ".join(s for s in ("hackernews", "mastodon") if s not in failed)
             r["status"] = "partial" if failed else "ok"
+    # Before the same fix, a source that failed on some queries but not others left status "ok".
+    if r.get("status") == "ok" and (r.get("source_errors") or "").strip():
+        r["status"] = "partial"
     return r
 
 

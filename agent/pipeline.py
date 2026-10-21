@@ -9,7 +9,7 @@ Run accounting (what each number in data/runs.csv means):
   new           of those, posts never processed before (these are scored)
   shortlisted   new posts whose rule score reached min_score_to_keep
   qualified     leads written to the sheet this run (hot + warm + watch)
-  status        ok | partial (some source failed) | failed (no source worked)
+  status        ok | partial (any source call or post failed) | failed (no source worked)
 """
 
 import uuid
@@ -121,7 +121,8 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
     for tier in ("Hot", "Warm", "Watch"):
         run[tier.lower()] = sum(1 for l in leads if l["priority"] == tier)
     run["source_errors"] = "; ".join(f"{k}: {v[:300]}" for k, v in errors.items())
-    run["status"] = "failed" if not ok_sources else ("partial" if failed_sources or proc_errors else "ok")
+    # Any source error makes the run partial, even if that source answered other queries.
+    run["status"] = "failed" if not ok_sources else ("partial" if errors or proc_errors else "ok")
     run["finished_utc"] = _now()
 
     # Log the run before syncing so the sheet's Run log includes this run, then again with the result.
