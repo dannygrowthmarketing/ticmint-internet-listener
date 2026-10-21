@@ -66,6 +66,12 @@ REGIONS = {
               r"texas", r"california", r"\$\d"),
 }
 
+# Relevance gate. The first live run (21 Oct 2026) kept 31 rows and almost all were
+# noise: HN essays and #eventprofs blog posts that matched "support" or "slow".
+# Nothing scores unless the post is actually about tickets or names a platform.
+TICKETING = _rx(r"\btickets?\b", r"\bticketing\b", r"\bbox office\b", r"\bregistration (platform|page|fees?|system)\b",
+                r"\bsell(ing)? out\b", r"\bticket sales\b")
+
 ORGANISER_COMMUNITIES = {"r/eventprofs", "r/eventmanagement", "r/promoters", "r/bandmembers", "#eventprofs"}
 
 
@@ -81,6 +87,10 @@ def score(post: dict, competitors: dict[str, list[str]], now: datetime | None = 
     now = now or datetime.now(timezone.utc)
 
     comps = detect_competitors(text, competitors)
+    if not comps and not TICKETING.search(text):
+        return {"score": 0, "competitors": [], "pain_categories": [], "is_organiser_signal": False,
+                "is_fan_signal": False, "switching_intent": False, "negative_emotion": False, "regions": [],
+                "why": "No ticketing context."}
     pains = [k for k, rx in PAIN.items() if rx.search(text)]
     organiser = bool(ORGANISER.search(text)) or community in ORGANISER_COMMUNITIES
     fan = bool(FAN.search(text))

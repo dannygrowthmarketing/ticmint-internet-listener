@@ -71,8 +71,37 @@ def search(query: str, since_ts: int, limit: int = 25, subreddits: list[str] | N
         if errors and path == "search":
             break
     if not posts and errors:
-        raise SourceError(errors[0])
+        # Reddit blocks unauthenticated requests from most cloud IPs (GitHub Actions
+        # included). Fall back to PullPush, a free public archive of Reddit.
+        try:
+            return _pullpush(query, since_ts, limit)
+        except SourceError as e:
+            raise SourceError(f"{errors[0]}; pullpush fallback: {e}")
     return list(posts.values())
+
+
+def _pullpush(query: str, since_ts: int, limit: int) -> list[dict]:
+    posts = []
+    for kind in ("submission", "comment"):
+        data = get_json(f"https://api.pullpush.io/reddit/search/{kind}/",
+                        params={"q": query, "after": since_ts, "size": limit, "sort": "desc", "sort_type": "created_utc"},
+                        retries=1)
+        for p in data.get("data", []):
+            pid = f"reddit:{p.get('id')}"
+            link = p.get("permalink") or f"/comments/{(p.get('link_id') or '').removeprefix('t3_')}/_/{p.get('id')}"
+            posts.append({
+                "id": pid,
+                "source": "reddit",
+                "url": link if link.startswith("http") else "https://www.reddit.com" + link,
+                "author": p.get("author") or "",
+                "author_url": f"https://www.reddit.com/user/{p.get('author')}",
+                "title": p.get("title") or "",
+                "text": clean_html(p.get("selftext") or p.get("body") or ""),
+                "created_utc": datetime.fromtimestamp(int(p.get("created_utc", 0)), timezone.utc).isoformat(),
+                "community": f"r/{p.get('subreddit')}",
+                "raw_score": p.get("score") or 0,
+            })
+    return posts
 
 
 def profile(username: str) -> dict:
