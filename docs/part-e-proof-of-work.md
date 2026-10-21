@@ -19,7 +19,7 @@
 
 ## 3. Anything else I've built
 
-- **This repo.** An autonomous lead-intelligence agent with a custom MCP server (12 tools), a scheduled GitHub Actions run, and a self-refreshing Google Sheet. Built for this assignment. → [README](../README.md)
+- **This repo.** An autonomous lead-intelligence agent with a custom MCP server (14 tools), a scheduled GitHub Actions run, and a self-refreshing Google Sheet. Built for this assignment. → [README](../README.md)
 - [Other agents, automations, dashboards. From your GitHub, candidates to check and keep if they're yours: `revenue-casebook`, `audit-journey`, `how-i-work`, `arise-shine-growth-plan`, and the client reports.]
 - [Gold Coins CRM + Meta Lead Ads integration ("Command Centre"): lead capture to CRM]
 - [WhatsApp bulk messaging system]

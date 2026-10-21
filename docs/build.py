@@ -18,6 +18,7 @@ SECTIONS = [
     ("part-c", "C · Organic visibility", ROOT / "docs/part-c-organic-visibility.md"),
     ("part-d", "D · Growth strategy", ROOT / "docs/part-d-growth-strategy.md"),
     ("part-e", "E · Proof of work", ROOT / "docs/part-e-proof-of-work.md"),
+    ("part-f", "F · Audit, plan and status", ROOT / "docs/part-f-audit-and-operating-plan.md"),
     ("ai-note", "AI-use note", ROOT / "docs/ai-use-note.md"),
 ]
 

@@ -9,7 +9,7 @@ Built for the Ticmint Growth Lead assignment (Part A, Track 1). The written part
 | **Live sheet** | [Ticmint Internet Listener - Leads (live)](https://docs.google.com/spreadsheets/d/1IJpp71OWmk4y0dG08GXMCCMugbN1IB-gEDJSOBHl1BI/edit): tabs `Leads`, `Review`, `Hot queue`, `Run log`, `About`. Leads and Run log pull the repo CSVs with `IMPORTDATA` (Google refreshes roughly hourly); the Review tab is human-only and never overwritten |
 | **Proof it runs on its own** | [`data/runs.csv`](data/runs.csv) (one row per run) and the [`listen` workflow history](https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/workflows/listen.yml) |
 | **Schedule** | GitHub Actions cron `17 */6 * * *` (every 6 hours), plus on every change to the agent's code |
-| **Custom MCP server** | [`listener_mcp/server.py`](listener_mcp/server.py): 12 tools, 1 resource, 1 prompt |
+| **Custom MCP server** | [`listener_mcp/server.py`](listener_mcp/server.py): 14 tools, 1 resource, 1 prompt |
 
 ---
 
