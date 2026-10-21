@@ -88,6 +88,10 @@ ORGANISER_COMMUNITIES = {"r/eventprofs", "r/eventmanagement", "r/promoters", "r/
                          "r/eventbritesupport", "r/eventbrite"}
 
 
+# Most specific / most urgent first: the first pain found drives the opener.
+PAIN = {k: PAIN[k] for k in ("account_risk", "payouts", "fees", "data_ownership", "support", "refunds", "checkout_ux")}
+
+
 def detect_competitors(text: str, competitors: dict[str, list[str]]) -> list[str]:
     padded = f" {text.lower()} "
     return [name for name, aliases in competitors.items() if any(a in padded for a in aliases)]
