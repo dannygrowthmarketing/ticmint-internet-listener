@@ -66,10 +66,14 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
                 continue
             crossposts.add(key)
             posts.setdefault(p["id"], p)
-    ok_sources = sorted(s for s, (ok, _) in calls.items() if ok)
-    failed_sources = sorted(s for s in errors if s not in ok_sources)
+    # "ok" means every call to that source worked. A source that answered some queries
+    # and failed others is failed, with its success count noted, e.g. "reddit(2/14 ok)".
+    answered = sorted(s for s, (ok, _) in calls.items() if ok)  # returned data at least once
+    ok_sources = [s for s in answered if not calls[s][1]]
+    failed_sources = sorted(errors)
     run["sources_ok"] = " ".join(ok_sources)
-    run["sources_failed"] = " ".join(failed_sources)
+    run["sources_failed"] = " ".join(
+        f"{s}({calls[s][0]}/{sum(calls[s])} ok)" if calls.get(s, [0])[0] else s for s in failed_sources)
     run["sources_skipped"] = " ".join(sorted(skipped))
     run["discovered"] = len(posts)
     log(f"[collect] {len(posts)} unique posts; ok: {ok_sources}; failed: {failed_sources}; skipped: {sorted(skipped)}")
@@ -122,7 +126,7 @@ async def run_cycle(tools, trigger: str = "manual", max_llm_calls: int = 40, log
         run[tier.lower()] = sum(1 for l in leads if l["priority"] == tier)
     run["source_errors"] = "; ".join(f"{k}: {v[:300]}" for k, v in errors.items())
     # Any source error makes the run partial, even if that source answered other queries.
-    run["status"] = "failed" if not ok_sources else ("partial" if errors or proc_errors else "ok")
+    run["status"] = "failed" if not answered else ("partial" if errors or proc_errors else "ok")
     run["finished_utc"] = _now()
 
     # Log the run before syncing so the sheet's Run log includes this run, then again with the result.

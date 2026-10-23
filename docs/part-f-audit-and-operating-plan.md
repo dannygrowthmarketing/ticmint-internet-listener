@@ -34,13 +34,13 @@ I checked the repo, the workflow history, the committed data and the Google Shee
 
 ## F3. Tests
 
-`python -m pytest -q` → **25 passed** (run in this environment on 21 Oct 2026, and on every push by the `test` workflow).
+`python -m pytest -q` → **26 passed** (last run 23 Oct 2026, and on every push by the `test` workflow).
 
 | File | What it proves |
 |---|---|
 | `test_scoring.py` (9) | Real fixtures: the suspended-account organiser scores Hot; the bomb-threat comment, promotions, digests and fan complaints are rejected |
 | `test_mcp_end_to_end.py` (1) | The agent starts the MCP server over stdio and runs a full cycle twice through its tools; the second run adds nothing |
-| `test_failures.py` (15) | Blocked source → partial and other sources kept; all sources down → failed; a crash on one post keeps the rest and retries it; source failing midway → partial; no duplicates; review status survives; missing credentials are skips; LLM timeout falls back; an invented quote is ignored; LLM cannot make a non-organiser Hot; competitor + anger without an organiser stays below Warm; every lead carries evidence; CRM export says unconnected |
+| `test_failures.py` (16) | Blocked source → partial and other sources kept; all sources down → failed; a crash on one post keeps the rest and retries it; source failing midway → partial; no duplicates; review status survives; missing credentials are skips; LLM timeout falls back; an invented quote is ignored; LLM cannot make a non-organiser Hot; competitor + anger without an organiser stays below Warm; every lead carries evidence; CRM export says unconnected |
 
 What tests cannot prove: that real organisers will post often enough, or that a person agrees with the scores. Those need the review loop in F7.
 
@@ -148,7 +148,7 @@ Compare cost per demo and demo-to-opportunity rate against other channels in Par
 |---|---|---|
 | **Implemented and verified** | Custom MCP server with 14 tools, driven over stdio by the agent | `test_mcp_end_to_end.py`; every Actions run log prints the tool list |
 | | GitHub Actions job runs, scores, commits data | 11+ runs in [`data/runs.csv`](../data/runs.csv): `push`, `workflow_dispatch` and `schedule` triggers |
-| | Evidence-based scoring, failure handling, de-duplication, review preservation | 25 passing tests |
+| | Evidence-based scoring, failure handling, de-duplication, review preservation | 26 passing tests |
 | | Live site | https://dannygrowthmarketing.github.io/ticmint-internet-listener/ (fetched after deploy) |
 | | Google Sheet exists with IMPORTDATA formulas, shared with Daniel | Drive file 1IJpp71O… |
 | | **Scheduled (cron) runs**, with a delay | First `schedule` run fired at 17:12 UTC on 21 Oct ([run](https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/runs/39641747829), success): the 12:17 slot, about 5 hours late. GitHub cron is best effort, so a fallback check at :47 past each slot dispatches the workflow if nothing started (tested 14:06 and 18:48 UTC); those runs are logged as `workflow_dispatch` |
@@ -168,11 +168,11 @@ Compare cost per demo and demo-to-opportunity rate against other channels in Par
 - [x] Site deployed and reachable
 - [x] Sheet created and shared
 - [x] An editor clicks **Allow access** in the sheet so the formulas load
-- [ ] Sheet link sharing set to "Anyone with the link: Viewer" (so reviewers can open it)
+- [x] Sheet link sharing set to "Anyone with the link: Viewer" (so reviewers can open it)
 - [x] First scheduled run confirmed in the Actions history ([17:12 UTC, 21 Oct](https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/runs/39641747829); about 5 hours late)
 - [ ] `LLM_API_KEY` (and `LLM_BASE_URL`, `LLM_MODEL`) set as repo secrets/variables
 - [ ] Optional: `BSKY_HANDLE`/`BSKY_APP_PASSWORD`, `REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET`
-- [ ] Part E personal figures filled in by Daniel
+- [x] Part E filled from the published casebook, each figure sourced
 - [ ] Walkthrough video link added
 
 ## F11. How I'd explain it in the interview (two minutes)

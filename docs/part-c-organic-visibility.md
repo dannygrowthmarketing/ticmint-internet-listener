@@ -16,12 +16,17 @@ The practical difference: SEO is mostly won **on your own site**. GEO is mostly 
 
 ### My hands-on work on this channel
 
-> **[Fill in: your own SEO/AEO/GEO work. Sites, what you changed, the period.]**
-> Keep it to 3–5 bullets. Name the site, what was yours, and the before/after with the source of each number (GSC, GA4, Ahrefs). If a number isn't from a tool export, leave it out.
+- **[Foremost Public Adjusters](https://dannygrowthmarketing.github.io/revenue-casebook/foremost-pa.html)** (South Florida, local services). Technical and on-page rebuild: crawl issues 19 → 0, 140 keywords mapped to pages, 24 pages rewritten. Found 0 of 247 live paid keywords were branded.
+- **[EveryWatch](https://dannygrowthmarketing.github.io/revenue-casebook/everywatch.html)** (global watch marketplace, Jan 2024 – May 2025). Reference-level content pages built for search, alongside a small paid budget.
+- **Google Business Profile** for [Elites Dental Care](https://dannygrowthmarketing.github.io/revenue-casebook/elites-dental.html) and [Gold Coins Club & Resort](https://dannygrowthmarketing.github.io/revenue-casebook/resort.html). Profile rebuilds for map-pack and local answer surfaces, the local version of AEO.
 
 ### Outcome
 
-> **[Fill in: outcomes with source and date range, e.g. "non-brand clicks 1.2k → 4.8k/month, GSC, Jan–Jun 2025".]**
+- **Foremost PA:** crawl issues 19 → 0 (site crawl). No ranking or traffic gain is claimed: the brand rebuild was specified, not confirmed live.
+- **EveryWatch:** monthly new users 9,113 → 182,782 (GA4, Jan 2024 – May 2025). That's all channels; I don't separate organic in this number.
+- **Gold Coins:** profile actions +11% while profile views fell 30% (Business Profile, Q2 → Q3 2026).
+
+The lesson I'd bring to Ticmint: I've been strict about not crediting organic with results I can't isolate. That's why C4 is built around a holdout.
 
 ### Audit: Ticmint's organic visibility (checked 20–21 Oct 2026)
 

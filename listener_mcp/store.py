@@ -102,6 +102,15 @@ def _migrate(r: dict) -> dict:
     # Before the same fix, a source that failed on some queries but not others left status "ok".
     if r.get("status") == "ok" and (r.get("source_errors") or "").strip():
         r["status"] = "partial"
+    # Before 23 Oct, a source that errored on some queries still sat in sources_ok.
+    errored = {e.split(":")[0].strip() for e in (r.get("source_errors") or "").split("; ") if ":" in e}
+    errored &= {"hackernews", "reddit", "bluesky", "mastodon"}
+    ok = (r.get("sources_ok") or "").split()
+    moved = [s for s in ok if s in errored]
+    if moved:
+        r["sources_ok"] = " ".join(s for s in ok if s not in errored)
+        failed = (r.get("sources_failed") or "").split()
+        r["sources_failed"] = " ".join(failed + [s for s in moved if s not in failed])
     return r
 
 

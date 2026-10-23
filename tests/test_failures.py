@@ -66,6 +66,17 @@ class Flaky(Tools):
 def test_source_failing_midway_marks_run_partial():
     r = run(Flaky({"hackernews": {"posts": [], "error": None}, "mastodon": {"posts": [], "error": None}}))
     assert r["status"] == "partial" and "reddit: HTTP 429" in r["source_errors"]
+    # A source that errored on any query is never listed as ok (run of 23 Oct 05:30 UTC did this).
+    assert "reddit" not in r["sources_ok"].split()
+    assert r["sources_failed"].startswith("reddit(1/")
+
+
+def test_old_rows_with_an_erroring_source_listed_ok_are_corrected():
+    row = {"run_id": "e4735c40", "discovered": "158", "status": "partial",
+           "sources_ok": "hackernews mastodon reddit", "sources_failed": "",
+           "source_errors": "reddit: https://www.reddit.com/search.json -> HTTP 403; pullpush: x -> HTTP 403"}
+    r = store._migrate(dict(row))
+    assert r["sources_ok"] == "hackernews mastodon" and r["sources_failed"] == "reddit"
 
 
 def test_all_sources_down_is_a_failed_run():
