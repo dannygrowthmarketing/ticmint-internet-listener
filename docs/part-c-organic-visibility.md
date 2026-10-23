@@ -30,6 +30,8 @@ The lesson I'd bring to Ticmint: I've been strict about not crediting organic wi
 
 ### Audit: Ticmint's organic visibility (checked 20–21 Oct 2026)
 
+The full audit behind this section is a [16-page PDF](https://dannygrowthmarketing.github.io/ticmint-internet-listener/assets/ticmint-digital-audit-oct-2026.pdf). It scores five areas (overall 4.8/10) and covers the site, SEO, social, paid, reviews, competitors and a 90-day plan.
+
 Method: public checks only (sitemaps, robots.txt, llms.txt, page source, the "best of" pages that rank for money queries, G2/Capterra). No GSC, GA4 or Semrush access, so traffic numbers are deliberately absent.
 
 **What I found**

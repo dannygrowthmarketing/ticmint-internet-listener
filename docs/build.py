@@ -4,6 +4,7 @@ Run by .github/workflows/pages.yml. Locally: pip install markdown && python docs
 """
 
 import re
+import shutil
 from pathlib import Path
 
 import markdown
@@ -50,6 +51,8 @@ def main():
     nav = "\n".join(f'<a href="#{sid}">{label}</a>' for sid, label, _ in SECTIONS)
     body = "\n".join(f'<section id="{sid}" class="doc">{render(p)}</section>' for sid, _, p in SECTIONS)
     (OUT / "index.html").write_text(tpl.replace("{{NAV}}", nav).replace("{{SECTIONS}}", body), encoding="utf-8")
+    if (ROOT / "docs/assets").exists():
+        shutil.copytree(ROOT / "docs/assets", OUT / "assets", dirs_exist_ok=True)
     print(f"built {OUT / 'index.html'}")
 
 

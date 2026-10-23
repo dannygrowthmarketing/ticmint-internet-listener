@@ -23,6 +23,8 @@
 
 ## Track 3: Multi-tool orchestration ("what did we spend last week and what did it produce?")
 
+> I've built a working version of this for a dental clinic client: the [Elites marketing dashboard](https://elites-marketing-dashboard.vercel.app/). It shows Google Ads, GA4, Search Console, Microsoft Clarity and website leads in one view, with Business Profile and Meta awaiting access. Each number keeps its own source, and it flags broken tracking with the evidence (e.g. GA4 receiving booking and call events with none marked as key events), which is Track 4's job too.
+
 **Signal and source**
 - A plain-language question from the team (Slack or Claude), plus a scheduled Monday question. Sources: **Google Ads API, Meta Marketing API, LinkedIn Marketing API** (spend, clicks, conversions), **GA4 Data API** (sessions, sign-ups by source), **Freshsales API** (leads, SQLs, deals by source), **GSC** (organic). One custom MCP server per source, plus a **metrics MCP server** that holds the definitions.
 

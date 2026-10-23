@@ -38,5 +38,7 @@ The other accounts are measured on revenue, leads and cost, not ROAS:
 ## 3. Anything else I've built
 
 - **This repo.** A lead-intelligence agent with a custom MCP server (14 tools), scheduled GitHub Actions runs and a self-refreshing Google Sheet. → [README](../README.md)
+- **[Elites marketing dashboard](https://elites-marketing-dashboard.vercel.app/).** Live marketing intelligence for a dental clinic: Google Ads, GA4, Search Console, Clarity and website leads in one place, synced daily, with ranked insights that each carry evidence and a suggested fix. Built by me for a current client.
+- **[Ticmint digital audit](https://dannygrowthmarketing.github.io/ticmint-internet-listener/assets/ticmint-digital-audit-oct-2026.pdf).** 16 pages, done before the first interview from public sources only.
 - **[Audit journey](https://dannygrowthmarketing.github.io/audit-journey/).** How I audit an account end to end, on a real prospect.
 - **Client reporting in HTML.** Monthly reviews that join ad platforms, Shopify or till data, and CRM, published as pages instead of decks (links above).
