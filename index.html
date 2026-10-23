@@ -1,0 +1,1689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticmint Growth Lead Submission</title>
+<meta name="description" content="Daniel Deepak's submission for the Ticmint Growth Lead assignment: a working Internet Listener agent with a custom MCP server and a self-refreshing Google Sheet, plus Parts B–E.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbfaf7; --surface:#ffffff; --ink:#1b1d21; --muted:#5d636e; --line:#e6e3dc;
+  --accent:#0f6b5c; --accent-soft:#e3f1ee; --hot:#b4361f; --warm:#b26a00; --watch:#5d636e;
+  --code:#f3f1ec; --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121417; --surface:#1a1d21; --ink:#e9eaec; --muted:#9aa1ab; --line:#2a2e34;
+    --accent:#5cc8b3; --accent-soft:#16302b; --hot:#ff8a73; --warm:#f2b552; --watch:#9aa1ab;
+    --code:#22262b; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121417; --surface:#1a1d21; --ink:#e9eaec; --muted:#9aa1ab; --line:#2a2e34;
+  --accent:#5cc8b3; --accent-soft:#16302b; --hot:#ff8a73; --warm:#f2b552; --watch:#9aa1ab;
+  --code:#22262b; --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 Inter,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .in{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;gap:16px;align-items:center;overflow-x:auto;white-space:nowrap}
+.top .brand{font-weight:700;letter-spacing:-.01em;margin-right:8px}
+.top nav a{color:var(--muted);text-decoration:none;font-size:14px;margin-right:14px}
+.top nav a:hover{color:var(--ink)}
+main{max-width:1080px;margin:0 auto;padding:0 16px 96px}
+.hero{padding:56px 0 24px}
+.hero .eyebrow{color:var(--accent);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.hero h1{font-size:clamp(30px,5vw,46px);line-height:1.1;letter-spacing:-.02em;margin:10px 0 14px;max-width:820px}
+.hero p{color:var(--muted);font-size:18px;max-width:720px;margin:0}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:28px 0 8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);text-decoration:none;color:var(--ink);display:block}
+.card b{display:block;font-size:15px}
+.card span{color:var(--muted);font-size:14px}
+a.card:hover{border-color:var(--accent)}
+.live{margin:36px 0 12px}
+.live h2{font-size:22px;margin:0 0 4px;letter-spacing:-.01em}
+.live .sub{color:var(--muted);font-size:14px;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:13px}
+.kpi .h{color:var(--muted);font-size:11.5px;margin-top:4px;line-height:1.35}
+.kh{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:22px 0 10px}
+.na{font-size:15px;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)} .small{font-size:12.5px}
+.sources{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:14px;margin:4px 0 8px;line-height:1.8}
+.ok{color:var(--accent)} .bad{color:var(--hot)} .skip{color:var(--warm)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:var(--surface);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid currentColor}
+.Hot{color:var(--hot)} .Warm{color:var(--warm)} .Watch{color:var(--watch)}
+.empty{padding:18px;color:var(--muted)}
+.doc{border-top:1px solid var(--line);margin-top:56px;padding-top:8px}
+.doc h1{font-size:30px;letter-spacing:-.02em;line-height:1.2;margin:28px 0 12px}
+.doc h2{font-size:22px;letter-spacing:-.01em;margin:36px 0 10px}
+.doc h3{font-size:17px;margin:26px 0 8px}
+.doc p,.doc li{max-width:78ch}
+.doc table{margin:14px 0 18px;display:block;overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.doc blockquote{margin:16px 0;padding:10px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.88em;background:var(--code);padding:1px 5px;border-radius:4px}
+pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.45}
+pre code{background:none;padding:0;font-size:12.5px}
+hr{border:0;border-top:1px solid var(--line);margin:32px 0}
+footer{color:var(--muted);font-size:13px;text-align:center;padding:32px 16px}
+@media (max-width:640px){.hero{padding-top:32px}.hero p{font-size:16px}th,td{padding:8px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <span class="brand">Ticmint · Growth Lead</span>
+  <nav><a href="#live">Live output</a><a href="#part-a">A · The build</a>
+<a href="#part-b">B · Other tracks</a>
+<a href="#part-c">C · Organic visibility</a>
+<a href="#part-d">D · Growth strategy</a>
+<a href="#part-e">E · Proof of work</a>
+<a href="#part-f">F · Audit, plan and status</a>
+<a href="#ai-note">AI-use note</a></nav>
+</div></header>
+<main>
+  <section class="hero">
+    <div class="eyebrow">Submission · Daniel Deepak · October 2026</div>
+    <h1>An agent that finds organisers who are fed up with their ticketing platform, and the growth plan around it.</h1>
+    <p>Part A is working software: a custom MCP server and a scheduled agent that write to a Google Sheet every few hours, with no human involved. Parts B–E are the thinking around it, kept short.</p>
+    <div class="links">
+      <a class="card" href="https://github.com/dannygrowthmarketing/ticmint-internet-listener"><b>Repository</b><span>Code, README, setup, where it breaks</span></a>
+      <a class="card" href="https://docs.google.com/spreadsheets/d/1IJpp71OWmk4y0dG08GXMCCMugbN1IB-gEDJSOBHl1BI/edit"><b>Live Google Sheet</b><span>Leads, Review, Hot queue, Run log (IMPORTDATA from the repo)</span></a>
+      <a class="card" href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/workflows/listen.yml"><b>Run history</b><span>Every scheduled run on GitHub Actions</span></a>
+      <a class="card" href="https://dannygrowthmarketing.github.io/ticmint-internet-listener/assets/ticmint-digital-audit-oct-2026.pdf"><b>Full digital audit (PDF)</b><span>16 pages, 20 Oct 2026: site, SEO, social, paid, reviews, competitors, 90-day plan</span></a>
+      <a class="card" href="#part-f"><b>Status, plainly</b><span>What works, what's blocked, what's only planned (Part F)</span></a>
+    </div>
+  </section>
+
+  <section class="live" id="live">
+    <h2>Live output</h2>
+    <p class="sub">Read in your browser from the repo's <code>data/</code> folder (committed by every run) and from the GitHub Actions API (the workflow evidence). Anything that can't be loaded or measured shows as "unavailable". <span id="updated"></span></p>
+    <h3 class="kh">Lead pipeline</h3>
+    <div class="kpis" id="kpis-pipeline"></div>
+    <h3 class="kh">Runs (from GitHub Actions)</h3>
+    <div class="kpis" id="kpis-runs"></div>
+    <div id="sources" class="sources"></div>
+    <h3 class="kh">Qualified leads</h3>
+    <div class="tablewrap"><table id="leads"><thead><tr><th>Priority</th><th>Score · confidence</th><th>Platform · problem</th><th>Evidence (verbatim)</th><th>Why the score</th><th>Next action</th></tr></thead><tbody><tr><td colspan="6" class="empty">Loading…</td></tr></tbody></table></div>
+    <h3 class="kh">Run log</h3>
+    <div class="tablewrap"><table id="runs"><thead><tr><th>Finished (UTC)</th><th>Trigger</th><th>Status</th><th>Discovered</th><th>New (scored)</th><th>Qualified</th><th>H / W / W</th><th>LLM calls</th><th>Failed sources</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="part-a" class="doc"><h1>Ticmint Internet Listener</h1>
+<p>An agent that watches the public internet for <strong>event organisers who are frustrated with their ticketing platform</strong>, works out who they are and why they're worth contacting, and writes them to a Google Sheet that refreshes itself every few hours.</p>
+<p>Built for the Ticmint Growth Lead assignment (Part A, Track 1). The written parts are in <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/tree/main/docs"><code>docs/</code></a> and on the <a href="https://dannygrowthmarketing.github.io/ticmint-internet-listener/">submission site</a>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Live sheet</strong></td>
+<td><a href="https://docs.google.com/spreadsheets/d/1IJpp71OWmk4y0dG08GXMCCMugbN1IB-gEDJSOBHl1BI/edit">Ticmint Internet Listener - Leads (live)</a>: tabs <code>Leads</code>, <code>Review</code>, <code>Hot queue</code>, <code>Run log</code>, <code>About</code>. Leads and Run log pull the repo CSVs with <code>IMPORTDATA</code> (Google refreshes roughly hourly); the Review tab is human-only and never overwritten</td>
+</tr>
+<tr>
+<td><strong>Proof it runs on its own</strong></td>
+<td><a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/data/runs.csv"><code>data/runs.csv</code></a> (one row per run) and the <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/workflows/listen.yml"><code>listen</code> workflow history</a></td>
+</tr>
+<tr>
+<td><strong>Schedule</strong></td>
+<td>GitHub Actions cron <code>17 */6 * * *</code> (every 6 hours), plus on every change to the agent's code</td>
+</tr>
+<tr>
+<td><strong>Custom MCP server</strong></td>
+<td><a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/listener_mcp/server.py"><code>listener_mcp/server.py</code></a>: 14 tools, 1 resource, 1 prompt</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>What a row looks like</h2>
+<p><em>Illustrative, based on a real r/EventbriteSupport post the listener found in run 4 (that post is now a test fixture). Live rows are in the sheet.</em></p>
+<table>
+<thead>
+<tr>
+<th>priority</th>
+<th>score</th>
+<th>source</th>
+<th>competitor</th>
+<th>pain</th>
+<th>quote</th>
+<th>why_contact</th>
+<th>suggested_opener</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hot</td>
+<td>95</td>
+<td>reddit · r/EventbriteSupport</td>
+<td>Eventbrite</td>
+<td>account_risk</td>
+<td>"My eventbrite account wss suspended… support hasn't replied. My event is on Saturday."</td>
+<td>Organiser voice; on Eventbrite; unhappy about account suspension; region: …</td>
+<td>"That sounds stressful, having Eventbrite pull the event. If you need a backup ticket page live today on your own domain, I can help you get one up for free."</td>
+</tr>
+</tbody>
+</table>
+<p>Each row also carries the author's handle and profile link, public profile context (karma or followers, account age, bio), the post URL and date, which scorer decided (<code>rules</code> or <code>rules+llm</code>), plus <code>review_status</code>, <code>confidence</code>, <code>icp_fit</code>, <code>evidence_quote</code>, <code>score_explanation</code> and <code>next_action</code>. Human review lives in the sheet's <code>Review</code> tab and survives every refresh.</p>
+<hr />
+<h2>Architecture</h2>
+<pre><code>          GitHub Actions cron (every 6h)  ──or──  Claude Desktop / Claude Code (ask in plain English)
+                     │                                          │
+                     ▼                                          │
+        agent/run.py  (MCP client, ~60 lines)                   │
+                     │  stdio, JSON-RPC                         │
+                     ▼                                          ▼
+   ┌──────────────── listener_mcp/server.py  (custom MCP server) ────────────────┐
+   │  collect        search_source(hackernews|reddit|bluesky|mastodon, query)    │
+   │  de-duplicate   filter_unseen · mark_seen                                   │
+   │  judge          score_post (rules) → qualify_post (rules → LLM → grounding  │
+   │                 check → enrich_author)                                      │
+   │  persist        save_leads · log_run · sync_sheet                           │
+   │  ask            query_leads · lead_stats · run_listener · weekly_digest     │
+   └─────┬───────────────┬────────────────────┬───────────────────────┬─────────┘
+         ▼               ▼                    ▼                       ▼
+   HN Algolia API   Reddit (OAuth → PullPush   LLM (any OpenAI-       data/*.csv (committed
+   Mastodon tags    → RSS fallbacks)           compatible endpoint:   back to the repo) ──▶ Google Sheet
+   Bluesky search                              Gemini/Groq free)      Sheets API (push) or Apps Script (pull)
+</code></pre>
+<p><strong>What talks to what.</strong> The scheduled job doesn't call any API itself. <code>agent/run.py</code> launches the MCP server as a subprocess, lists its tools, and runs the cycle in <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/agent/pipeline.py"><code>agent/pipeline.py</code></a> entirely through <code>call_tool</code>. The server owns all I/O and all judgment. Because of that, the same server plugged into Claude Desktop answers questions against the same data:</p>
+<blockquote>
+<p>"Who complained about Eventbrite payouts in the UK this week, and what should I say to the top one?"
+→ <code>query_leads(pain="payouts", region="UK", days=7)</code> → the rows, with openers.</p>
+</blockquote>
+<p><strong>Where the LLM sits.</strong> In one place: <code>qualify_post</code>, after the rules and only for posts the rules shortlisted (score ≥ 30, max 40 per run). It returns structured JSON (is this an organiser, which platform, which pain, buying intent, an evidence quote, a score, a reason, an opener). Then a <strong>grounding check</strong> runs: the quote must appear verbatim in the post and the named platform must appear in the text, or the LLM's answer is thrown away and the rules decide. Final score = 0.4 × rules + 0.6 × LLM. If the LLM says "not an organiser", the post is dropped.</p>
+<p><strong>What triggers a run.</strong> The cron schedule; a push that changes <code>listener_mcp/</code>, <code>agent/</code> or <code>config/</code>; the "Run workflow" button; or <code>run_listener</code> from a chat client.</p>
+<p><strong>Why rules first.</strong> Rules are free, deterministic and unit-tested (<a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/tree/main/tests"><code>tests/</code></a>). They also keep LLM cost flat however noisy the sources get, and they keep producing rows when a free LLM tier runs out. In that case the bar rises from 30 to 45, because there's no second opinion.</p>
+<h3>MCP tools</h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>search_source</code></td>
+<td>Search one source; returns normalised posts. Errors come back as data so one blocked source never stops a run</td>
+</tr>
+<tr>
+<td><code>filter_unseen</code> / <code>mark_seen</code></td>
+<td>De-duplicate against every previous run (<code>data/state.json</code>)</td>
+</tr>
+<tr>
+<td><code>score_post</code></td>
+<td>Rule score 0–100 with the features that produced it</td>
+</tr>
+<tr>
+<td><code>enrich_author</code></td>
+<td>Public profile: karma/followers, account age, bio, links</td>
+</tr>
+<tr>
+<td><code>qualify_post</code></td>
+<td>Rules → LLM → grounding check → enrichment → a sheet-ready row</td>
+</tr>
+<tr>
+<td><code>save_leads</code></td>
+<td>Upsert into <code>data/leads.csv</code>, keeping human statuses</td>
+</tr>
+<tr>
+<td><code>log_run</code></td>
+<td>Upsert the run's row into <code>data/runs.csv</code></td>
+</tr>
+<tr>
+<td><code>sync_sheet</code></td>
+<td>Push Leads + Run log to Google Sheets (statuses typed in the sheet win)</td>
+</tr>
+<tr>
+<td><code>query_leads</code> / <code>lead_stats</code></td>
+<td>Ask questions of the stored leads</td>
+</tr>
+<tr>
+<td><code>run_listener</code></td>
+<td>Whole cycle from a chat client</td>
+</tr>
+<tr>
+<td>resource <code>listener://watchlist</code> / prompt <code>weekly_digest</code></td>
+<td>The config, and a stand-up digest template</td>
+</tr>
+</tbody>
+</table>
+<p>What it listens for (queries, communities, the 23 competitors and their aliases) lives in <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/config/watchlist.yaml"><code>config/watchlist.yaml</code></a>, not in code.</p>
+<hr />
+<h2>Setup</h2>
+<h3>1. Run it locally (2 minutes, no keys)</h3>
+<pre><code class="language-bash">git clone https://github.com/dannygrowthmarketing/ticmint-internet-listener &amp;&amp; cd ticmint-internet-listener
+python -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install -r requirements.txt pytest
+python -m pytest -q             # 26 tests, including a full MCP round-trip on fixtures
+python -m agent.run             # one live cycle: HN + Mastodon (+ Reddit if your IP isn't blocked)
+</code></pre>
+<p>Output goes to <code>data/leads.csv</code> and <code>data/runs.csv</code>. Every key below is optional, and each one switches on one more capability.</p>
+<h3>2. Use the MCP server from Claude Desktop or Claude Code</h3>
+<pre><code class="language-json">{
+  &quot;mcpServers&quot;: {
+    &quot;ticmint-listener&quot;: {
+      &quot;command&quot;: &quot;/path/to/ticmint-internet-listener/.venv/bin/python&quot;,
+      &quot;args&quot;: [&quot;-m&quot;, &quot;listener_mcp.server&quot;],
+      &quot;cwd&quot;: &quot;/path/to/ticmint-internet-listener&quot;,
+      &quot;env&quot;: { &quot;PYTHONPATH&quot;: &quot;/path/to/ticmint-internet-listener&quot; }
+    }
+  }
+}
+</code></pre>
+<p>Claude Code: <code>claude mcp add ticmint-listener -- python -m listener_mcp.server</code> from the repo root.</p>
+<h3>3. Turn on the schedule (fork → Actions)</h3>
+<p>Fork the repo and enable Actions. The <code>listen</code> workflow already has a cron. Under <strong>Settings → Secrets and variables → Actions</strong> you can add:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Gives you</th>
+<th>Where to get it (free)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LLM_API_KEY</code></td>
+<td>secret</td>
+<td>LLM qualification + tailored openers</td>
+<td>Gemini: aistudio.google.com/apikey, or Groq: console.groq.com</td>
+</tr>
+<tr>
+<td><code>LLM_BASE_URL</code>, <code>LLM_MODEL</code></td>
+<td>variables</td>
+<td>Choice of provider</td>
+<td>Gemini: <code>https://generativelanguage.googleapis.com/v1beta/openai</code>, <code>gemini-2.5-flash</code>. Groq (default): <code>https://api.groq.com/openai/v1</code>, <code>llama-3.3-70b-versatile</code></td>
+</tr>
+<tr>
+<td><code>BSKY_HANDLE</code>, <code>BSKY_APP_PASSWORD</code></td>
+<td>secrets</td>
+<td>Bluesky search</td>
+<td>bsky.app → Settings → App passwords</td>
+</tr>
+<tr>
+<td><code>REDDIT_CLIENT_ID</code>, <code>REDDIT_CLIENT_SECRET</code></td>
+<td>secrets</td>
+<td>Reliable Reddit (see "Where it breaks")</td>
+<td>reddit.com/prefs/apps → "script" app</td>
+</tr>
+<tr>
+<td><code>GOOGLE_SERVICE_ACCOUNT_JSON</code> + <code>SHEET_ID</code> (variable)</td>
+<td>secret</td>
+<td>Push straight to the Sheet</td>
+<td>Option B below</td>
+</tr>
+</tbody>
+</table>
+<h3>4. Connect the Google Sheet (pick one)</h3>
+<p><strong>Option A: formula pull (no keys, no code). This is what the live sheet uses.</strong>
+<code>Leads!A1</code> is <code>=IMPORTDATA("https://raw.githubusercontent.com/&lt;owner&gt;/&lt;repo&gt;/main/data/leads.csv")</code> and <code>Run log!A1</code> does the same for <code>runs.csv</code>. Google re-fetches them about once an hour, so the sheet follows every committed run with nobody touching it. The first time the file is opened, an editor has to click <strong>Allow access</strong> on the "external data" banner; until then the cells show <code>#REF!</code>. Reviews go in the <code>Review</code> tab (lead_id + a dropdown status) and are joined back onto <code>Leads</code> by a <code>VLOOKUP</code>, so a refresh can never overwrite them. <code>Hot queue</code> is a <code>QUERY</code> over <code>Leads</code> for Hot and Warm rows.</p>
+<p><strong>Option A2: Apps Script pull.</strong> If formulas aren't allowed in your Workspace: Sheet → Extensions → Apps Script → paste <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/apps_script/Code.gs"><code>apps_script/Code.gs</code></a> → run <code>setup</code> once → approve. An hourly trigger rewrites the tabs and keeps typed statuses.</p>
+<p><strong>Option B: service-account push (the agent writes the sheet itself).</strong>
+Google Cloud console → new project → enable the Google Sheets API → create a service account → Keys → add a JSON key. Share the sheet with the service account's <code>client_email</code> as Editor. Add the JSON as the <code>GOOGLE_SERVICE_ACCOUNT_JSON</code> secret and the sheet ID (the long string in its URL) as the <code>SHEET_ID</code> variable. <code>sync_sheet</code> then writes both tabs at the end of every run.</p>
+<hr />
+<h2>Where it breaks</h2>
+<p>These are from running it, not from guessing. Every run's errors are in <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/data/runs.csv"><code>data/runs.csv</code></a>.</p>
+<ul>
+<li><strong>Reddit blocks cloud IPs.</strong> From GitHub Actions, <code>reddit.com/search.json</code> returns <strong>403</strong> on every run, PullPush (the public Reddit archive) returns <strong>403</strong> on most calls, and the RSS feed returns <strong>429</strong>. Reddit is where organisers complain most, so this is the biggest gap. The fix is OAuth credentials (a free "script" app, 100 requests/min). Reddit has tightened API approvals, so plan for a short wait, or run the job from a residential IP (a $5 VM won't do; a home machine or a proxy will).</li>
+<li><strong>Signal is sparse and the rules are blunt.</strong> Run 1 kept 31 rows that were all noise (HN essays, conference-design blogs matching "support"). Run 4 kept 9 "Warm" rows that were organisers happily <em>advertising</em> events on Eventbrite, while a genuine lead (account suspended five days before an event) scored only 55. Run 5 still kept long event digests that mention Eventbrite once and "recommend" somewhere unrelated, so sentiment is now judged only within ±250 characters of the platform mention. Each fix came with a fixture test. By run 7 the rules kept 2 of 162 posts, one of them the genuine Hot lead. They'll keep missing new phrasings, though. The LLM pass is what makes precision acceptable. Without a key, expect more false positives.</li>
+<li><strong>GitHub cron runs late.</strong> Runs 1–9 were started by code pushes. The first cron slot (12:17 UTC, 21 Oct) didn't fire on time; the first <code>schedule</code> run started at <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/runs/39641747829">17:12 UTC</a>, about 5 hours late. GitHub treats cron as best effort, especially on new repos and at busy times. So a separate scheduled check runs 30 minutes after each slot (:47 past 0/6/12/18 UTC) and, if no run started, dispatches the workflow through the GitHub API. Those runs show <code>trigger = workflow_dispatch</code> in the run log, so they're never mistaken for cron.</li>
+<li><strong>Run accounting lied once.</strong> Run 8 (21 Oct, 09:18 UTC) logged <code>status: ok</code> although Reddit had returned 429 on most queries: Reddit answered its first query, so it counted as a working source. Any source error now makes a run <code>partial</code>; old rows are corrected on read and a test reproduces the case.</li>
+<li><strong>Hallucination risk.</strong> The LLM can invent a quote, a platform or a pain. The grounding check rejects any answer whose quote isn't verbatim in the post or whose platform isn't mentioned, and marks the row <code>rules (LLM rejected: …)</code>. What it <em>can't</em> catch is a plausible but wrong judgment ("is an organiser" when the author is a ticket buyer writing in the first person). That's why a human reads the row before any outreach.</li>
+<li><strong>Auth expiry.</strong> Bluesky sessions are created per run, so there's nothing to expire. A Reddit OAuth token is refreshed per run. A rotated Google service-account key or an un-shared sheet makes <code>sync_sheet</code> return <code>error: …</code> in the run log. The CSVs still update and the Apps Script path keeps working. Free LLM tiers rate-limit (Gemini free: ~10 RPM). Each error is logged and the row falls back to rules.</li>
+<li><strong>Cost at scale.</strong> Today it's free: Actions minutes on a public repo, free APIs, ≤ 40 LLM calls per run × 4 runs/day ≈ 5k calls/month, inside free tiers. At 10× the queries on a paid model it's roughly 50k classifications × ~1.2k tokens ≈ 60M tokens/month ≈ <strong>$5–20/month</strong> on a Flash/Haiku-class model. Cost isn't the constraint; source access is.</li>
+<li><strong>Fragile by design.</strong> Mastodon full-text search isn't public, so it reads hashtag timelines only. HN Algolia's fuzzy matching returns off-topic comments, which the relevance gate drops. <code>data/state.json</code> lives in git, so two simultaneous runs could race (prevented with a <code>concurrency</code> group). Region detection is keyword-based ("London", "₹", "DTCM") and leaves most rows blank.</li>
+<li><strong>Compliance.</strong> It only reads public posts and suggests replies. It never sends. Before automating sends: GDPR/PECR in the UK (legitimate-interest assessment, opt-out in every message), and each platform's rules on unsolicited DMs.</li>
+</ul>
+<h2>Two calls, for the walkthrough</h2>
+<ul>
+<li><strong>The one I'd defend:</strong> <em>rules before LLM, with a grounding check after.</em> It's cheaper, testable, keeps running when the free tier dies, and it caught its own mistakes in public (the commit history shows each fix with the run that exposed it). An "LLM reads everything" design would have hidden runs 1 and 4 behind fluent summaries.</li>
+<li><strong>The one I'm unsure about:</strong> <em>listening to public social platforms at all for this ICP.</em> Ticmint's primary buyers (UAE/India mid-market promoters, Part D) mostly complain in WhatsApp groups and to peers, not on Reddit. The richer signal is probably an <strong>event-listing monitor</strong> (organisers announcing events on Platinumlist/District/Eventbrite, with dates and prices), which is the first thing on the list below.</li>
+</ul>
+<h2>What I'd build next week</h2>
+<ol>
+<li><strong>Event-listing monitor</strong>: a second source tool reading new UAE/India listings on Platinumlist, District and Eventbrite. Output: organiser, event date, price tiers, capacity, estimated commission paid. That becomes the Tier 1/2 outbound trigger in Part D3.</li>
+<li><strong>Reddit OAuth + Trustpilot organiser reviews</strong>, to close the biggest source gap.</li>
+<li><strong>Freshsales sync</strong>: Hot rows become Freshsales leads with the quote and opener in a note, deduped by handle/domain. Statuses flow back to the sheet.</li>
+<li><strong>Company enrichment</strong>: follow bio links to a website, then pull domain, country and team size from the site and its public LinkedIn page, so a Reddit handle becomes an account.</li>
+<li><strong>Feedback loop</strong>: use the <code>status</code> column ("contacted", "replied", "not a fit") to re-weight rules monthly and build a 200-row labelled set for measuring precision and recall per source.</li>
+<li><strong>Daily Slack/WhatsApp digest</strong> of Hot rows using the <code>weekly_digest</code> prompt.</li>
+</ol>
+<h2>Repo map</h2>
+<pre><code>listener_mcp/       the MCP server: server.py (tools), scoring.py (rules), llm.py (LLM + grounding),
+                    sources/ (hackernews, reddit, bluesky, mastodon), store.py, sheets.py, http.py
+agent/              run.py (MCP client entry point), pipeline.py (the cycle, as tool calls)
+config/             watchlist.yaml: queries, communities, competitors
+data/               leads.csv, runs.csv, state.json (written by the scheduled job)
+apps_script/        Code.gs: the no-key Sheet refresher
+docs/               Parts B–E, the AI-use note, and the submission site
+tests/              rules, grounding check, full MCP round-trip twice (proves de-dup)
+</code></pre></section>
+<section id="part-b" class="doc"><h1>Part B: The tracks I didn't build</h1>
+<blockquote>
+<p>The brief says "pick one of the five tracks" and lists four. I built Track 1, so these are Tracks 2, 3 and 4.
+Cost assumptions: Ticmint's scale is ~4 markets, ~10 competitors, a growth team of 1–3, a few hundred leads and a few thousand ad-platform rows a month. LLM costs are at small/fast-model prices (Gemini Flash / Haiku class), checked against their published per-token rates in Oct 2026, and rounded up.</p>
+</blockquote>
+<h2>Track 2: Review-site sentiment agent</h2>
+<p><strong>Signal and source</strong>
+- New 1–3★ reviews of Eventbrite, Ticket Tailor, Platinumlist, TicketSource, Skiddle and Humanitix on <strong>Trustpilot</strong> (public pages, organisers write there about payouts and account holds), <strong>Capterra/GetApp</strong> and <strong>G2</strong> (reviewer role, company size and industry are shown). Polled daily. G2 and Capterra are behind Cloudflare, so in practice this needs a paid scraper actor (Apify) or manual CSV exports. Trustpilot's public business pages are fetchable.</p>
+<p><strong>What it decides, and on what logic</strong>
+- Is the reviewer an <strong>organiser</strong> (not a ticket buyer)? On Trustpilot most Eventbrite 1★ reviews are buyers. Role words, "my event", payout language, and G2's role/company fields decide it.
+- Which <strong>specific complaint</strong> (fees, payout hold, account suspension, support, refunds), extracted with a quote that must appear verbatim in the review, the same grounding check as Part A.
+- <strong>Enrichment confidence</strong>: G2 gives "Event Manager, 11–50 employees, Events Services" plus first name and last initial. Matching that to a company or LinkedIn profile is a guess, so the agent scores the match and drops anything below "two independent fields agree".</p>
+<p><strong>Action and approval</strong>
+- Drafts a message that answers <em>that</em> complaint (e.g. payout hold → "on Ticmint buyers pay into your own Stripe, so there's nothing to hold"), logs to Freshsales and the Sheet. <strong>A human approves every send.</strong> A cold message that quotes someone's review back to them is borderline creepy and close to review sites' terms, so the human checks tone and whether to reference the review at all.</p>
+<p><strong>Failure mode that worries me most</strong>
+- <strong>Wrong-person enrichment.</strong> "Sarah K., Event Manager" matched to the wrong Sarah, who gets a message about a complaint she never made. That's reputational damage for little upside. The guard is confidence thresholds, and not mentioning the review unless identity is certain.</p>
+<p><strong>Monthly cost:</strong> Apify actors for G2/Capterra ≈ $30–50; LLM classification of ~2,000 reviews + 200 drafts ≈ $3; Hunter/Apollo free tiers for emails; GitHub Actions free. <strong>≈ $35–60/month.</strong></p>
+<h2>Track 3: Multi-tool orchestration ("what did we spend last week and what did it produce?")</h2>
+<blockquote>
+<p>I've built a working version of this for a dental clinic client: the <a href="https://elites-marketing-dashboard.vercel.app/">Elites marketing dashboard</a>. It shows Google Ads, GA4, Search Console, Microsoft Clarity and website leads in one view, with Business Profile and Meta awaiting access. Each number keeps its own source, and it flags broken tracking with the evidence (e.g. GA4 receiving booking and call events with none marked as key events), which is Track 4's job too.</p>
+</blockquote>
+<p><strong>Signal and source</strong>
+- A plain-language question from the team (Slack or Claude), plus a scheduled Monday question. Sources: <strong>Google Ads API, Meta Marketing API, LinkedIn Marketing API</strong> (spend, clicks, conversions), <strong>GA4 Data API</strong> (sessions, sign-ups by source), <strong>Freshsales API</strong> (leads, SQLs, deals by source), <strong>GSC</strong> (organic). One custom MCP server per source, plus a <strong>metrics MCP server</strong> that holds the definitions.</p>
+<p><strong>What it decides, and on what logic</strong>
+- <strong>Query planning:</strong> which sources, which date range, which timezone and currency (UAE/India/UK accounts report in different ones).
+- <strong>Definitions, not improvisation:</strong> "produce" means Freshsales SQLs and first paid tickets, not platform-reported conversions. Those definitions live in a versioned semantic layer (YAML) that the LLM reads but can't change.
+- <strong>Join logic:</strong> UTM → GA4 source → Freshsales lead source, with a reported match rate, so you see how much spend is unattributable.</p>
+<p><strong>Action and approval</strong>
+- <strong>Read-only.</strong> It answers, shows the tool calls and the SQL behind every number, and flags gaps ("27% of SQLs have no source"). There's no approval step because it changes nothing. Pausing ads or moving budget is a different agent with different guardrails.</p>
+<p><strong>Failure mode that worries me most</strong>
+- <strong>A confidently wrong number that sounds right.</strong> The LLM adds Meta's "conversions" to Freshsales SQLs, or mixes AED and INR. The rule: <strong>the LLM never does arithmetic.</strong> Tools return computed totals, and the answer must cite the tool output for every figure. A nightly reconciliation test compares the agent's answers to fixed queries.</p>
+<p><strong>Monthly cost:</strong> all APIs free (Google Ads needs an approved developer token); BigQuery free tier for joins (GA4 export is free); LLM ≈ 300 questions × ~20k tokens ≈ $5–15; hosting on a $5 VM or Cloud Run free tier. <strong>≈ $10–25/month.</strong></p>
+<h2>Track 4: Funnel measurement agent</h2>
+<p><strong>Signal and source</strong>
+- <strong>Synthetic journeys</strong> every hour: Playwright runs ticmint.com → pricing → "Start Creating Free" and "Book an Enterprise Demo" with a test UTM, and records which tags fire (GA4, Meta Pixel, LinkedIn Insight, GTM container IDs). The audit found two GTM containers, so the agent would have caught that on day one.
+- <strong>Volume monitors:</strong> GA4 Data API event counts by hour (sign_up, generate_lead, purchase), compared against the same hour-of-week baseline.
+- <strong>Downstream reconciliation:</strong> GA4 generate_lead vs Freshsales leads created vs Meta/Google reported conversions, daily.
+- <strong>Config diffs:</strong> GTM API container versions, so any publish is diffed and attributed.</p>
+<p><strong>What it decides, and on what logic</strong>
+- <strong>Broken vs quiet:</strong> a drop is "broken" if synthetic journeys fail or the ratio between stages (form submits ÷ leads created) breaks, and only "quiet" if all stages drop together (a low-traffic day). That ratio logic is what keeps alert fatigue down.
+- <strong>Severity</strong> = revenue weight of the step × hours broken. A dead demo form is P1, a missing scroll event is P4.</p>
+<p><strong>Action and approval</strong>
+- Slack alert with evidence (screenshot, network log, which tag, which GTM version changed and who published it), a GA4 annotation, and a ticket. <strong>No automatic fixes to GTM.</strong> A human publishes tag changes. The agent can also block a reporting run ("don't send the weekly report, lead counts are 40% under Freshsales") and that needs no approval, since it prevents bad data rather than creating it.</p>
+<p><strong>Failure mode that worries me most</strong>
+- <strong>Synthetic tests polluting the data they're protecting.</strong> Test sign-ups landing in GA4, Meta audiences and Freshsales. Guard: a dedicated test email domain and UTM, filtered at GA4 (internal traffic rule), the CRM (auto-delete) and Meta (exclusion). The second worry is alerting so often that people mute the channel.</p>
+<p><strong>Monthly cost:</strong> GitHub Actions or a $5 VM for Playwright hourly; APIs free; LLM only to write the alert summary ≈ $2. <strong>≈ $5–15/month.</strong></p></section>
+<section id="part-c" class="doc"><h1>Part C: The Organic Visibility Agent</h1>
+<blockquote>
+<p>A design, not a build. Assumptions are written next to the decision they affect.</p>
+</blockquote>
+<h2>C1. Fundamentals</h2>
+<h3>SEO, AEO and GEO, as I use the words</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>What the system does</th>
+<th>What "winning" means</th>
+<th>What it rewards</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SEO</strong> (classic search)</td>
+<td>Ranks ten documents and the buyer picks one</td>
+<td>A click from a ranked position</td>
+<td>Relevance, links, technical health, intent match</td>
+</tr>
+<tr>
+<td><strong>AEO</strong> (answer engines: Google AI Overviews / AI Mode, featured snippets, voice)</td>
+<td>Answers the question on the results page, sometimes with a source link</td>
+<td>Being the cited source, or the brand named in the answer</td>
+<td>Short, extractable, well-structured answers; schema; being already trusted by the index</td>
+</tr>
+<tr>
+<td><strong>GEO</strong> (generative engines: ChatGPT, Perplexity, Gemini, Claude, Copilot)</td>
+<td>Writes a recommendation from what it retrieved plus what it learned in training</td>
+<td>Being <em>named</em>, named <em>accurately</em>, and named <em>early</em>, for prompts like "best white-label ticketing for a Dubai festival"</td>
+<td>Third-party consensus: review sites, listicles, Reddit/forum threads, comparison pages, consistent facts across the web</td>
+</tr>
+</tbody>
+</table>
+<p>The practical difference: SEO is mostly won <strong>on your own site</strong>. GEO is mostly won <strong>off it</strong>. An LLM asked "what's the best Eventbrite alternative for a UK club night" repeats what G2, Capterra, Reddit and "best of" listicles say, and Ticmint is absent from most of those today (evidence below). AEO sits in between: the source has to rank first, then be easy to lift a clean answer from.</p>
+<h3>My hands-on work on this channel</h3>
+<ul>
+<li><strong><a href="https://dannygrowthmarketing.github.io/revenue-casebook/foremost-pa.html">Foremost Public Adjusters</a></strong> (South Florida, local services). Technical and on-page rebuild: crawl issues 19 → 0, 140 keywords mapped to pages, 24 pages rewritten. Found 0 of 247 live paid keywords were branded.</li>
+<li><strong><a href="https://dannygrowthmarketing.github.io/revenue-casebook/everywatch.html">EveryWatch</a></strong> (global watch marketplace, Jan 2024 – May 2025). Reference-level content pages built for search, alongside a small paid budget.</li>
+<li><strong>Google Business Profile</strong> for <a href="https://dannygrowthmarketing.github.io/revenue-casebook/elites-dental.html">Elites Dental Care</a> and <a href="https://dannygrowthmarketing.github.io/revenue-casebook/resort.html">Gold Coins Club &amp; Resort</a>. Profile rebuilds for map-pack and local answer surfaces, the local version of AEO.</li>
+</ul>
+<h3>Outcome</h3>
+<ul>
+<li><strong>Foremost PA:</strong> crawl issues 19 → 0 (site crawl). No ranking or traffic gain is claimed: the brand rebuild was specified, not confirmed live.</li>
+<li><strong>EveryWatch:</strong> monthly new users 9,113 → 182,782 (GA4, Jan 2024 – May 2025). That's all channels; I don't separate organic in this number.</li>
+<li><strong>Gold Coins:</strong> profile actions +11% while profile views fell 30% (Business Profile, Q2 → Q3 2026).</li>
+</ul>
+<p>The lesson I'd bring to Ticmint: I've been strict about not crediting organic with results I can't isolate. That's why C4 is built around a holdout.</p>
+<h3>Audit: Ticmint's organic visibility (checked 20–21 Oct 2026)</h3>
+<p>The full audit behind this section is a <a href="https://dannygrowthmarketing.github.io/ticmint-internet-listener/assets/ticmint-digital-audit-oct-2026.pdf">16-page PDF</a>. It scores five areas (overall 4.8/10) and covers the site, SEO, social, paid, reviews, competitors and a 90-day plan.</p>
+<p>Method: public checks only (sitemaps, robots.txt, llms.txt, page source, the "best of" pages that rank for money queries, G2/Capterra). No GSC, GA4 or Semrush access, so traffic numbers are deliberately absent.</p>
+<p><strong>What I found</strong></p>
+<ol>
+<li><strong>Ticmint is missing from the pages AI engines quote.</strong> For "best white label event ticketing platform 2026", the top results include <a href="https://www.ticketnews.com/2026/09/7-best-white-label-ticketing-software-platforms-in-2026/">TicketNews' 7 best white-label platforms</a> (Nuweb, vivenu, Ticketor, Eventcube, Ticketsauce, SECUTIX, Ticket Tailor) and <a href="https://www.zoho.com/backstage/event-ticketing-software/best-platforms.html">Zoho's best ticketing platforms</a>. Ticmint appears in neither. These are exactly the documents a generative engine retrieves. This is the single biggest GEO gap, and no amount of on-site content closes it.</li>
+<li><strong>Review footprint is near zero.</strong> Capterra 0 reviews, G2 7, against Ticket Tailor's 596 on Capterra. Answer engines lean heavily on review aggregators for "best X" prompts, so with no reviews Ticmint has no presence there either.</li>
+<li><strong>The <code>llms.txt</code> advertises the wrong company.</strong> It exists (auto-generated by All in One SEO Pro), but it's a flat dump of blog posts: DTCM permit guides, NFT/blockchain ticketing, event news. It doesn't describe the product, pricing, proof or ICP. A file meant to steer LLMs is steering them to the 2023 story.</li>
+<li><strong>Positioning drift is visible to machines.</strong> The site says "2% white-label ticketing", while YouTube, the 2023 launch press and ~10 NFT posts say "blockchain anti-scalping". Entity consistency is a GEO ranking input in all but name. Mixed signals produce hedged or wrong descriptions.</li>
+<li><strong>Content built for volume, not buyers.</strong> 110+ posts, ~22 on DTCM with 3+ near-duplicates, year-stamped listicles ("in 2027") that read as templated AI, no named authors, and <strong>no comparison or alternative pages at all</strong> ("Eventbrite alternative", "Platinumlist alternative", "Ticmint vs Ticket Tailor").</li>
+<li><strong>Index hygiene.</strong> 13+ draft/backup pages in the sitemap (<code>/new-home-2/</code>, <code>/pricing-2025/</code>, <code>/terms-of-service-bak2/</code>…), thin tag archives indexed, <code>/case-study/</code> vs <code>/case-studies/</code>, robots.txt pointing at the non-www host, and a footer "Popular Searches" keyword block with a typo.</li>
+<li><strong>AI crawlers are allowed.</strong> robots.txt has no rules for GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot or Google-Extended, so they all fall under <code>User-agent: *</code>. Good, and worth keeping deliberate rather than accidental.</li>
+<li><strong>Strong raw material that isn't machine-readable.</strong> BAI +27% revenue, 23k+ India Open tickets, BFI 66.5k tickets, ISO 27001 / SOC 2, the DTCM authorisation. These are the facts an LLM should repeat about Ticmint, but they sit in images and card layouts, not in crawlable text with schema.</li>
+</ol>
+<p><strong>Recommendations, in order</strong></p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Do this</th>
+<th>Surface it moves</th>
+<th>Effort</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Noindex/301 the junk pages, fix robots host, kill the footer keyword block, merge DTCM duplicates into one pillar</td>
+<td>SEO</td>
+<td>2 days</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Rewrite <code>llms.txt</code> by hand: what Ticmint is, who it's for, pricing, proof with numbers, comparison pages, docs</td>
+<td>GEO</td>
+<td>2 hours</td>
+</tr>
+<tr>
+<td>3</td>
+<td>60-day review drive to 50 reviews across G2 + Capterra (the audit's plan)</td>
+<td>GEO + AEO</td>
+<td>ongoing</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Ship 5 comparison pages with a fee calculator: vs Eventbrite, Ticket Tailor (be honest that flat per-ticket fees win above ~£11–30), Platinumlist, BookMyShow/District, KonfHub</td>
+<td>SEO + AEO</td>
+<td>2 weeks</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Get included in the third-party lists engines cite: pitch TicketNews, Zoho-style roundups, regional ("best ticketing platforms India/UAE") with the BAI/BFI proof</td>
+<td>GEO</td>
+<td>ongoing</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Case studies as text + <code>Organization</code>, <code>Product</code>, <code>Review</code>, <code>FAQPage</code> schema; named authors with real bios</td>
+<td>AEO + E-E-A-T</td>
+<td>1 week</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Retire the NFT narrative publicly: update YouTube description, add a dated "what changed" note on the old posts, 301 the weakest</td>
+<td>Entity consistency</td>
+<td>2 days</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>C2. The agent</h2>
+<pre><code>                     ┌───────────────────── SIGNALS (read) ─────────────────────┐
+  GSC API  Bing WMT  │  Crawl of ticmint.com    Prompt panel     Off-site        │
+  (queries, CTR,     │  (sitemap, schema,       (120 prompts ×   (G2/Capterra    │
+   pages)  (Copilot/ │   status codes,          4 engines × 3    counts, Reddit/ │
+           ChatGPT   │   internal links)        samples/week)    HN via Part A   │
+           search)   │                                           listener, list- │
+  Server/CDN logs    │  Competitor pages        SERP sampling    icles that      │
+  (AI bot hits)      │  (diffs)                 (AIO presence)   engines cite)   │
+                     └──────────────────────────────┬───────────────────────────┘
+                                                    ▼
+                         visibility-mcp (custom MCP server: one tool per signal,
+                         plus `opportunities()` which scores the backlog)
+                                                    ▼
+                    Planner (LLM): picks this week's top 5 from the scored backlog,
+                    writes the reasoning, proposes the action type
+                                                    ▼
+          ┌──────────────── ACTIONS ────────────────┐
+          │ auto: tech fixes on an allowlist,       │      human gate: briefs, new pages,
+          │ schema, internal links, alerts           │ ───▶ anything naming a competitor,
+          └─────────────────────────────────────────┘      a price, or a client number
+</code></pre>
+<h3>What it reads, and from where</h3>
+<ul>
+<li><strong>Classic:</strong> Google Search Console API (query × page impressions, clicks, position, CTR; free), Bing Webmaster Tools API (free; Bing's index feeds Copilot and ChatGPT search), a weekly crawl of ticmint.com (status codes, canonicals, schema, internal links, duplicate titles).</li>
+<li><strong>Answer surfaces:</strong> SERP sampling for ~200 money queries (does an AI Overview appear, who it cites) via a SERP API.</li>
+<li><strong>Generative surfaces:</strong> a fixed <strong>prompt panel</strong>: ~120 prompts written the way buyers ask ("I run a 5,000-person festival in Dubai, what should I use for tickets and DTCM permits?"), across ChatGPT, Perplexity, Gemini and Google AI Mode, 3 samples each per week. Logged: was Ticmint named, at what position, with what description, citing which URLs, and which competitors were named.</li>
+<li><strong>Off-site consensus:</strong> G2/Capterra review counts and ratings, the "best of" pages engines cite (from the panel's citation logs), and Reddit/HN threads from the Part A listener.</li>
+<li><strong>Crawler logs:</strong> CDN/server logs for GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot, Googlebot: what they fetch and how often.</li>
+<li><strong>Business context:</strong> a hand-maintained table of query clusters → ICP segment → value (from Part D), plus the fact store (pricing, fees, client results) that every output must cite.</li>
+</ul>
+<h3>How it decides what to work on next</h3>
+<p>Every candidate (a query cluster, a page, or an off-site source) gets one number:</p>
+<pre><code>priority = value × gap × winnability × confidence  /  effort
+
+value       = ICP weight of the cluster (Part D: UAE/India mid-market promoter = 1.0,
+              federations = 0.8, UK self-serve = 0.3) × intent stage (BOFU 1.0, MOFU 0.5, TOFU 0.2)
+gap         = best competitor's share-of-answer − ours, across classic rank, AIO citation
+              and generative mention rate (0–1, the bigger the surface the bigger the weight)
+winnability = can *we* move it? If engines cite our own pages for this cluster → high.
+              If they cite G2, Reddit and third-party listicles → on-site content scores low
+              and the *off-site* action (reviews, list inclusion) scores high instead.
+confidence  = how stable the measurement is (panel variance, sample size); noisy gaps wait
+effort      = hours, from a lookup table per action type
+</code></pre>
+<p>Two hard rules sit above the formula:</p>
+<ol>
+<li><strong>Fix before you create.</strong> Any technical blocker on a money page (noindex, 404, canonical loop, broken schema) jumps the queue regardless of score.</li>
+<li><strong>Off-site beats on-site when the citations say so.</strong> If 4 of the 5 URLs an engine cites for a cluster are review sites, the agent does not write a blog post. It proposes the review ask or the list pitch.</li>
+</ol>
+<p><em>Worked example.</em> "Eventbrite alternative UK": value 0.3 (UK self-serve) × 1.0 (BOFU) = 0.3; gap 0.9; winnability 0.4 (engines cite G2 and Reddit); effort 16h → <strong>0.007</strong>. "Platinumlist alternative / Dubai festival ticketing": value 1.0, gap 0.8, winnability 0.7 (few third-party pages exist, so our own comparison page can become the source), effort 16h → <strong>0.035</strong>. So the UAE page ships first, five times higher, even though the UK term has more search volume. That's the point: the logic is anchored to the ICP, not to volume.</p>
+<h3>What it produces</h3>
+<ul>
+<li>A weekly backlog (top 5 with the score breakdown and the reason), posted to Slack and a Sheet.</li>
+<li>Content briefs: target cluster, the questions buyers ask (from GSC, panel prompts and listener posts), the competitors engines name, the facts from the fact store to cite, the schema to ship.</li>
+<li>Drafts, saved to WordPress <strong>as drafts</strong> via the REST API.</li>
+<li>Technical fixes from an allowlist (below), applied automatically and logged.</li>
+<li>An off-site worklist: which list articles to pitch, which review sites to push, which Reddit threads deserve a genuine (human) reply.</li>
+<li>A weekly visibility report (C4) and alerts when a metric moves outside its band.</li>
+</ul>
+<h3>Where the human sits, and why there</h3>
+<ul>
+<li><strong>Approving the brief, not the draft.</strong> The expensive mistake is choosing the wrong page to build or the wrong claim to make, so the human signs off on <em>what</em> and <em>why</em> before any words exist. That's 10 minutes a week, and it's where judgment pays.</li>
+<li><strong>Before anything publishes that names a competitor, a price, a fee comparison or a client result.</strong> These are legal (comparative advertising in the UK, ASA/CAP code) and trust risks, and they're exactly the facts an LLM will later repeat about Ticmint.</li>
+<li><strong>All off-site outreach and community replies.</strong> An agent posting in Reddit threads is astroturfing, and it gets the brand banned from the forums engines trust most.</li>
+<li><strong>Not in the loop for</strong> crawling, scoring, measurement, schema/internal-link fixes on the allowlist, or alerting. Putting a person there adds delay and catches nothing.</li>
+</ul>
+<hr />
+<h2>C3. Autonomous publishing</h2>
+<p><strong>Would I let it publish to WordPress with no human touch? Not new pages. Not now.</strong></p>
+<p><strong>My line:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Auto-publish (reversible, no claims)</th>
+<th>Draft only, human publishes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Schema markup on existing pages</td>
+<td>Any new page or post</td>
+</tr>
+<tr>
+<td>Internal links between existing pages</td>
+<td>Edits that change a fact, price, fee or client number</td>
+</tr>
+<tr>
+<td>Meta descriptions/titles on pages ranked &gt; 20</td>
+<td>Anything naming a competitor</td>
+</tr>
+<tr>
+<td><code>noindex</code> on URLs matching the junk-page allowlist</td>
+<td>Anything on /pricing, /enterprise, the homepage</td>
+</tr>
+<tr>
+<td>Image alt text, broken-link fixes</td>
+<td>Deleting or redirecting a page that has backlinks or traffic</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What has to be true before I'd move the line</strong> (all of them, measured, for 90 days):</p>
+<ol>
+<li><strong>A fact store exists and is enforced.</strong> Every number in a draft must resolve to a row in a versioned table (fees, plans, client results, certifications). A claim checker blocks drafts with unresolved numbers or competitor statements.</li>
+<li><strong>Editors stop changing substance.</strong> Over ≥ 30 drafts, human edits are style only: &lt; 5% of drafts have a factual or positioning correction.</li>
+<li><strong>Published agent pages perform at least as well as human pages</strong> on indexation rate, CTR and panel citation, by cohort.</li>
+<li><strong>Rate limit and canary.</strong> No more than 2 auto-published pages a week, first to a low-traffic section, with automatic rollback if indexation or rankings for that section drop.</li>
+<li><strong>Rollback is tested.</strong> One click reverts any agent change, and someone has actually done it.</li>
+</ol>
+<p><strong>What's the damage if it goes wrong, and how fast would I know?</strong></p>
+<ul>
+<li><strong>A domain-level demotion.</strong> Google's scaled-content-abuse and site-reputation policies act on the whole site, not one page. Ticmint is already showing early symptoms (year-stamped templated listicles, 22 DTCM variants). <em>Detection:</em> a manual action shows in GSC within days, but algorithmic demotion shows as a slide in non-brand impressions over 2–6 weeks. By the time it's obvious, recovery is months.</li>
+<li><strong>Wrong facts get learned.</strong> A draft that says "1% fee" or "Ticket Tailor charges 5%" gets crawled, cited and absorbed into model answers. Pulling the page doesn't pull the answer, so that damage lasts weeks to months. <em>Detection:</em> the prompt panel's accuracy check (C4) within a week, but correction is slow. This is the main reason the human gate is on facts.</li>
+<li><strong>Legal/commercial.</strong> An inaccurate comparative claim in the UK or UAE invites a complaint or a takedown, and enterprise buyers (federations, The Times Group) read the site. <em>Detection:</em> immediate if a competitor complains, invisible until then.</li>
+</ul>
+<hr />
+<h2>C4. Measurement</h2>
+<p>The core problem: answer engines often produce no click, no session and no referrer. So I don't try to make GA4 do it. I measure <strong>four layers</strong>, each with its own instrument, and I only claim the agent works when layers move together and a control group doesn't.</p>
+<h3>What I measure</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Metric</th>
+<th>Instrument</th>
+<th>Cadence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Inputs (did it do the work?)</td>
+<td>Fixes shipped, pages shipped, schema coverage, AI-bot fetches of money pages, index coverage</td>
+<td>Agent log, crawl, CDN logs, GSC</td>
+<td>Daily</td>
+</tr>
+<tr>
+<td>2. Visibility (is it seen?)</td>
+<td><strong>Share of answer</strong>: % of panel runs where Ticmint is named; avg mention position; citation rate (our URLs cited); <strong>accuracy rate</strong> (description matches the fact store); AIO citation rate on 200 money queries; GSC non-brand impressions on BOFU clusters</td>
+<td>Prompt panel, SERP sampling, GSC</td>
+<td>Weekly</td>
+</tr>
+<tr>
+<td>3. Demand (does anyone act on it?)</td>
+<td>Branded search impressions (GSC) and Google Trends; direct + "(none)" sign-ups; referrals from chatgpt.com / perplexity.ai / copilot (some <em>do</em> pass referrer or <code>utm_source=chatgpt.com</code>); <strong>self-reported attribution</strong> on sign-up and demo forms ("How did you hear about us?" with "ChatGPT / AI assistant" and "Google AI answer" as options)</td>
+<td>GSC, GA4, form field → Freshsales</td>
+<td>Weekly</td>
+</tr>
+<tr>
+<td>4. Business</td>
+<td>Demo requests, SQLs and first-paid-ticket organisers that have AI/organic in self-reported or referral source; pipeline value</td>
+<td>Freshsales</td>
+<td>Monthly</td>
+</tr>
+</tbody>
+</table>
+<h3>Collection</h3>
+<ul>
+<li><strong>Prompt panel</strong>: ~120 prompts = 40 money prompts (BOFU, ICP-specific), 40 category prompts, 20 brand prompts ("what is Ticmint", "Ticmint vs Platinumlist"), 20 <strong>control</strong> prompts the agent never works on. 4 engines × 3 samples × weekly ≈ 1,440 calls/week. Responses are parsed by a small model into: brands named, order, URLs cited, Ticmint description, and an accuracy check against the fact store. 3 samples matter because outputs aren't deterministic. I report a share with a confidence interval, never a single run.</li>
+<li><strong>Rotation</strong>: 25% of non-control prompts are replaced monthly with real phrasings from GSC queries, sales-call notes and listener posts, so the panel tracks how buyers actually ask instead of becoming a test we teach to.</li>
+<li><strong>Model-release annotations</strong>: every engine/model update gets a marker on the charts, so a step change from GPT-x isn't credited to the agent.</li>
+</ul>
+<h3>How I prove the agent works (not just that numbers moved)</h3>
+<p><strong>A holdout.</strong> Split the query clusters in the backlog into matched pairs (similar value and baseline visibility) and let the agent work on one side of each pair for a quarter. The effect is the <strong>difference-in-differences</strong> in share of answer and non-brand impressions, treated minus control. If the control side rises just as much, the market moved, not us. A second, cruder check is market-level: run the off-site push (reviews, list inclusion) in UAE first and compare to UK.</p>
+<h3>What number tells me to shut it down</h3>
+<ul>
+<li><strong>Kill the whole thing</strong> if, after two quarters, the <strong>treated-minus-control lift in share of answer on money prompts is under 5 points</strong> <em>and</em> self-reported AI/organic attribution is under 5% of new demos. At that point it's costing more than paid search would, with nothing to show for it.</li>
+<li><strong>Kill autonomous actions immediately</strong> (keep measurement running) if non-brand organic clicks fall &gt; 20% for 3 consecutive weeks without a matching market or model-release explanation, if GSC shows any manual action, or if the <strong>accuracy rate</strong> on brand prompts drops below 90%. Being described wrongly is worse than not being described.</li>
+</ul>
+<hr />
+<h2>C5. Failure modes that worry me most</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Failure</th>
+<th>Why it's likely here</th>
+<th>What I'd build to catch it early</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Goodhart on the prompt panel.</strong> The agent learns to win our 120 prompts, the dashboard goes green, and real buyers asking real questions still don't hear "Ticmint".</td>
+<td>Any fixed benchmark becomes the target.</td>
+<td>20 untouched <strong>control prompts</strong>; monthly 25% rotation from real queries; a quarterly check that panel share-of-answer correlates with self-reported attribution. If they diverge, the panel is lying.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Scaled-content penalty / factual drift.</strong> The agent does what the blog already does (more pages, more variants), only faster, and drags the domain down.</td>
+<td>Ticmint's site already has the early pattern: 22 DTCM posts, year-stamped listicles.</td>
+<td>Hard weekly cap on new URLs; near-duplicate detector (embedding similarity &gt; 0.85 against existing pages blocks the brief); claim checker against the fact store; per-section canary with automatic rollback on indexation drops.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Measurement noise mistaken for progress.</strong> Generative answers swing week to week with model updates and retrieval changes; a +8 point week gets celebrated and acted on.</td>
+<td>LLM output variance is high and engines update without notice.</td>
+<td>Minimum 3 samples per prompt, confidence intervals on every chart, model-release annotations, and a rule that the planner can't change strategy on a single week's movement, only on a 4-week trend outside the band.</td>
+</tr>
+</tbody>
+</table></section>
+<section id="part-d" class="doc"><h1>Part D: Growth Strategy</h1>
+<blockquote>
+<p><strong>Assumptions I'm making throughout</strong> (none of these are public, so I state them):
+Ticmint's revenue is mostly the platform fee on paid tickets, so an account's value ≈ annual ticket GMV × take rate (5% Starter, 2% Growth, custom 1.5–7% Enterprise). Today's GMV is concentrated in a handful of enterprise accounts (BAI, BFI, CaribTix). There is one small growth team. Paid acquisition has been paused since August 2026, and GA4 data is unreliable because of the duplicate GTM container. If any of these is wrong, D1 and D5 are what change first.</p>
+</blockquote>
+<h2>D1. ICP</h2>
+<h3>Segments</h3>
+<table>
+<thead>
+<tr>
+<th>Segment</th>
+<th>Example</th>
+<th>Tickets / yr</th>
+<th>Est. annual value to Ticmint*</th>
+<th>Sales cycle</th>
+<th>Who they use now</th>
+<th>Ticmint's right to win</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. Sports federations &amp; leagues (India)</td>
+<td>BAI, BFI, state associations, franchise leagues</td>
+<td>20k–200k</td>
+<td>$15k–100k</td>
+<td>3–9 months, committee</td>
+<td>BookMyShow, District, Paytm Insider, in-house</td>
+<td><strong>Proven</strong> (India Open, BFI), ISO/SOC 2</td>
+</tr>
+<tr>
+<td>B. Mid-market promoters &amp; festivals (UAE + India)</td>
+<td>Recurring concert/club promoters, cultural &amp; wellness festivals, community mega-events (Onam, Pooram)</td>
+<td>5k–150k</td>
+<td>$5k–60k</td>
+<td>3–8 weeks, founder decides</td>
+<td>Platinumlist, Virgin Megastore Tickets, District, BookMyShow</td>
+<td>DTCM authorisation, data ownership, WhatsApp marketing, Peak Longevity / TEDx proof</td>
+</tr>
+<tr>
+<td>C. Conferences &amp; B2B events (UAE, UK, India)</td>
+<td>TEDx chapters, industry conferences</td>
+<td>500–10k</td>
+<td>$1k–8k</td>
+<td>2–6 weeks</td>
+<td>Eventbrite, Platinumlist, KonfHub</td>
+<td>DTCM, branded checkout</td>
+</tr>
+<tr>
+<td>D. White-label resellers</td>
+<td>CaribTix, Ticketing Nation</td>
+<td>100k+</td>
+<td>$50k+</td>
+<td>6–12 months</td>
+<td>Their own stack / vivenu / Eventcube</td>
+<td>API, infra, already done once</td>
+</tr>
+<tr>
+<td>E. UK/US self-serve small organisers</td>
+<td>Club nights, comedy, community</td>
+<td>&lt; 5k</td>
+<td>&lt; $1k</td>
+<td>Self-serve</td>
+<td>Eventbrite, Ticket Tailor, DICE</td>
+<td>Weak on price vs Ticket Tailor's flat fee</td>
+</tr>
+<tr>
+<td>F. Venues, colleges, marathons</td>
+<td>Theatres, college fests, race series</td>
+<td>varies</td>
+<td>$1k–20k</td>
+<td>varies</td>
+<td>mixed</td>
+<td>SkyAim, ITFoK proof</td>
+</tr>
+</tbody>
+</table>
+<p>* GMV estimates assume ₹600–1,500 / AED 100–300 average ticket price and a 2–4% blended take. They're for ranking segments against each other, not for forecasting.</p>
+<h3>Primary ICP: B. Mid-market recurring promoters and festivals in the UAE and India, currently on a marketplace</h3>
+<ul>
+<li><strong>Why this one now:</strong> <em>Urgency</em>: they live on an on-sale calendar, so every upcoming event is a deadline. <em>Budget</em>: they already pay marketplace commissions of roughly 8–15% (Ticmint's own ads quote "10–15%"), so the saving funds the switch. <em>Sales cycle</em>: weeks, and one founder decides. <em>Expansion</em>: every new event, city and add-on (WhatsApp, refund guarantee, affiliates) grows the account. <em>Proof</em>: Peak Longevity (3.1× revenue), TEDx Emirates Hills (moved off Platinumlist), Afroloud. <em>Moat</em>: DTCM permits in Dubai, which global players don't help with.</li>
+<li><strong>Company profile:</strong> 2–30 staff, 4–40 events a year, 5k–150k tickets, at least one flagship event over 2,000 capacity, active Instagram audience, selling through Platinumlist/District/BookMyShow or a clunky self-built page.</li>
+<li><strong>Buyer roles:</strong> Founder/managing partner (decides), head of marketing (cares about data and the pixel), ops/production lead (cares about gate scanning and day-of risk), finance (cares about payout timing and fees).</li>
+<li><strong>Core pain:</strong> "The marketplace owns my audience and takes 10%+ of every ticket. I can't retarget my own buyers, I get paid after the event, and my brand disappears inside theirs."</li>
+<li><strong>What triggers a buying decision:</strong> a newly announced event that isn't on sale yet (a 30–90 day window); a bad on-sale (crash, queue, fraud); a payout delay; a renewal or exclusivity contract ending; a new DTCM permit cycle; a first event in a new city.</li>
+</ul>
+<h3>Secondary ICP: A. Sports federations, state associations and leagues in India</h3>
+<ul>
+<li><strong>Why second, not first:</strong> the best proof and the biggest accounts, but cycles are slow (committees, tenders, sponsor approvals), there are few buyers, and the calendar is seasonal. It's a pipeline that pays in 6–9 months, so it runs in parallel and gets founder time rather than volume tactics.</li>
+<li><strong>Company profile:</strong> national federations, the ~30 state associations under each one (badminton, basketball, kabaddi, volleyball, athletics), and franchise leagues.</li>
+<li><strong>Buyer roles:</strong> secretary general / CEO (signs), commercial or marketing head (champions), sponsor and broadcast partners (influence), tech/finance committee (approves).</li>
+<li><strong>Core pain:</strong> moving from free entry to paid ticketing without empty stands, fraud at the gate, and no fan data to show sponsors.</li>
+<li><strong>Trigger:</strong> a tournament awarded or scheduled; a federation-level partner announcement (BAI → state associations is a ready referral path); sponsor demands for fan data; a bad ticketing experience at the last edition.</li>
+</ul>
+<p><strong>Explicitly not primary:</strong> UK/US self-serve (E). Against Ticket Tailor's flat 22–60p/ticket, a 2% fee loses on any ticket above roughly £11–30, so price isn't a wedge there. These organisers are served by self-serve and SEO, with no outbound and no paid prospecting.</p>
+<hr />
+<h2>D2. Channel prioritisation</h2>
+<p><strong>Available:</strong> SEO, AEO/GEO, Google Search (brand + conquest), Meta (prospecting, retargeting), LinkedIn Ads, outbound (email, LinkedIn, WhatsApp), partnerships (DTCM permit consultants, event agencies, venues, federations), review sites, referral and the "Powered by Ticmint" loop on every event page, PR, founder-led LinkedIn, events/trade shows, affiliates, communities.</p>
+<p><strong>The pick for the next two quarters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Job</th>
+<th>Why it fits the primary ICP</th>
+<th>90-day success</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Signal-led outbound</strong> (email + LinkedIn + WhatsApp where it's the business norm)</td>
+<td>Pipeline</td>
+<td>Promoters announce events publicly, <em>on competitor marketplaces</em>. Every Platinumlist/District listing is a named organiser, a ticket price, a capacity and an on-sale date: the trigger in D1. Add the Part A listener for frustration signals. Few, high-value accounts suit outbound better than ads.</td>
+<td>300 accounts worked, ≥ 4% positive reply, 25 qualified meetings, 8 SQLs, 3 organisers live with a paid on-sale</td>
+</tr>
+<tr>
+<td><strong>2. Bottom-funnel search: comparison pages + Google conquest</strong></td>
+<td>Capture</td>
+<td>The best ad Ticmint ever ran was "Platinumlist keeps your attendee data. Ticmint gives it back." Restart it, extend it to District/BookMyShow/Virgin, and point it at honest comparison pages with a fee calculator. These pages also become the sources answer engines cite (Part C).</td>
+<td>5 comparison pages live, conquest CPA per demo known per market, ≥ 20 demo requests, cost per SQL measured on clean (single-GTM) tracking</td>
+</tr>
+<tr>
+<td><strong>3. Proof engine: reviews + case studies + founder LinkedIn</strong></td>
+<td>Trust</td>
+<td>Outbound and conquest ads both fail without proof at the click. 0 Capterra reviews next to Ticket Tailor's 596 kills deals and AI visibility. Founder posts on BAI/BFI/Peak Longevity reach the exact federation and promoter network.</td>
+<td>50 reviews across G2 + Capterra, 4 case studies in text with schema, 2 founder posts/week, Ticmint named in ≥ 3 third-party "best ticketing" lists</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What I'm explicitly not doing, and why:</strong></p>
+<ul>
+<li><strong>Meta prospecting at organisers.</strong> Organisers are a small professional audience inside a consumer platform. The pixel is useful for retargeting site visitors (cheap, keep it), not for finding new promoters.</li>
+<li><strong>LinkedIn Ads at volume.</strong> CPCs are high and the UAE/India promoter audience on LinkedIn is thin. I'd use it only for small ABM bursts to named federation lists (secondary ICP) in Q2.</li>
+<li><strong>UK/US expansion pushes.</strong> The fee wedge breaks against Ticket Tailor, and Eventbrite owns discovery. Self-serve + SEO only.</li>
+<li><strong>More blog volume.</strong> 110 posts already. The next 10 pages should be comparisons and case studies, not post 111.</li>
+<li><strong>Trade-show booths.</strong> Expensive and slow to attribute. Attend to walk the floor and book meetings from the outbound list instead.</li>
+<li><strong>The NFT/blockchain story.</strong> Retire it everywhere it still appears.</li>
+</ul>
+<hr />
+<h2>D3. Cold outreach motion (primary ICP)</h2>
+<h3>Who's worth contacting</h3>
+<p><strong>Contact</strong> if all of: an upcoming event 30–120 days out (announced, not yet on sale, or on sale on a marketplace); recurring (≥ 3 events a year, or an annual flagship); estimated ≥ 3,000 tickets a year; a named decision-maker we can find; based in the UAE or India.</p>
+<p><strong>Boost</strong> (move up a tier): a public frustration signal (Part A listener), a recent bad on-sale, a first event in Dubai (DTCM pain), a competitor the audit has a sharp story against (Platinumlist).</p>
+<p><strong>Ignore:</strong> one-off or free events, under ~1,000 tickets a year (send to self-serve), venue-tied exclusive ticketing (they can't switch), organisers who switched platforms in the last 6 months, fans, students without an event, agencies reselling someone else's event.</p>
+<h3>Sequence (14–21 days, three tiers by expected value)</h3>
+<table>
+<thead>
+<tr>
+<th>Day</th>
+<th>Step</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Email 1 + LinkedIn profile view</td>
+<td>The trigger, the maths, one question. <em>"Saw [Event] is on Platinumlist for [date]. At [AED price] × ~[capacity], commission is roughly AED [X]. On Ticmint it'd be ~AED [Y], on your own domain, with the buyer list yours. Worth a 15-minute look before on-sale?"</em></td>
+</tr>
+<tr>
+<td>2</td>
+<td>LinkedIn connect</td>
+<td>No pitch, just the context line</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Email 2</td>
+<td>Proof from the same segment: Peak Longevity 3.1× revenue / TEDx Emirates Hills moved off Platinumlist with DTCM handled</td>
+</tr>
+<tr>
+<td>7</td>
+<td>LinkedIn message or 40-second voice note</td>
+<td>One question: "Who handles ticketing for [Event]?"</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Email 3</td>
+<td>An asset made <em>for them</em>: a mock branded ticket page on their domain style (Ticmint can generate this in minutes) or their fee calculation as a PDF</td>
+</tr>
+<tr>
+<td>14</td>
+<td>WhatsApp (only to a published business number, UAE/India norm)</td>
+<td>Short, with an opt-out</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Break-up email</td>
+<td>"Closing the loop. If timing's wrong, want me to check back before [next event]?"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tier 1 (top 50 accounts by value):</strong> fully hand-written by me, founder cc'd where there's a mutual connection. <strong>Tier 2 (next 250):</strong> variables computed, one human-written line each. <strong>Tier 3:</strong> listener and trigger-sourced long tail, mostly templated, human-approved in batches.</p>
+<h3>Personalisation at volume without mail-merge theatre</h3>
+<p>The personalisation is <strong>the maths and the trigger, not flattery.</strong> "Loved your recent post!" is theatre. "Your 4,000-ticket night on the 14th will cost you ~AED 60k in commission" is information they can't easily get anywhere else. Every variable is computed from public data: listing price tiers, venue capacity, event date and the marketplace's fee range. The line between that and theatre is simple: if the variable could be swapped into another prospect's email unchanged, it isn't personalisation.</p>
+<h3>How it connects to the agent I built</h3>
+<p>The Part A listener is the <strong>frustration signal</strong> for Tier 2/3, and its Sheet is already the working queue: Hot/Warm leads with the exact quote, the competitor, the pain, and a reply that answers that complaint. The next build (in the README) is an <strong>event-listing monitor</strong>: the same MCP server pattern, reading new Platinumlist/District/Eventbrite listings for UAE/India, which turns "upcoming event on a competitor" into rows with organiser, date, price and estimated commission. That feed is the Tier 1/2 trigger. The listener alone won't fill the pipeline. Most promoters complain to peers, not on Reddit, so it's a booster, not the engine.</p>
+<h3>Measure, and when to kill it</h3>
+<ul>
+<li>Track: accounts contacted, <strong>positive reply rate</strong> (not open rate; Apple MPP makes opens meaningless), meetings per 100 accounts, meeting → SQL rate, SQL → live organiser, days to first paid on-sale, deliverability (bounce, spam complaints).</li>
+<li><strong>Kill or rebuild</strong> if, after 400 accounts and at least two messaging angles, positive reply is under 1.5%, or meeting → SQL is under 25% (we're booking the wrong people). <strong>Pause immediately</strong> if spam complaints exceed 0.3% or bounces exceed 3%. Domain reputation is slower to fix than a bad quarter.</li>
+</ul>
+<h3>Tools</h3>
+<p>Freshsales (the CRM Ticmint already uses) as the system of record; the Part A listener + event-listing monitor (this repo, free); Apollo free tier or Hunter for emails; Google Workspace on 2 secondary sending domains with SPF/DKIM/DMARC and gradual warm-up; Instantly or Smartlead (≈ $40/month) for sending; LinkedIn Sales Navigator for Tier 1 only; WhatsApp Business app for UAE/India follow-ups.</p>
+<hr />
+<h2>D4. Funnel and qualification</h2>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Primary channels</th>
+<th>The action that matters</th>
+<th>Metric</th>
+<th>Biggest drop-off risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TOFU</strong> (aware the option exists)</td>
+<td>Founder LinkedIn, PR, "Powered by Ticmint" badge on every client event page, answer engines, listener-sourced conversations</td>
+<td>Visits a comparison page, the fee calculator or a case study</td>
+<td>Non-brand sessions to BOFU pages; calculator completions; AI share-of-answer (Part C)</td>
+<td>Mixed story: they find the NFT-era YouTube and press and bounce</td>
+</tr>
+<tr>
+<td><strong>MOFU</strong> (considering)</td>
+<td>Comparison pages, case studies, retargeting, outbound sequence, reviews</td>
+<td><strong>Self-serve:</strong> creates an event. <strong>Sales-led:</strong> books a demo</td>
+<td>Sign-up → event created (7 days); demo request rate; reply → meeting</td>
+<td>"Watch Demo" goes to <code>#</code>; the 5% vs 2% fee contradiction reads as bait-and-switch</td>
+</tr>
+<tr>
+<td><strong>BOFU</strong> (committing)</td>
+<td>Demo, migration offer, founder call for Tier 1</td>
+<td><strong>First paid ticket sold</strong>; for enterprise, the signed order form</td>
+<td>Activation (first paid ticket ≤ 14 days from sign-up); demo → SQL → closed-won; days to first on-sale</td>
+<td>Payment gateway setup (own Stripe/Razorpay KYC takes days) and fear of switching close to an on-sale</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sales-ready (SQL):</strong> an upcoming event ≤ 120 days out with an on-sale date, ≥ 3,000 tickets a year <em>or</em> a single event ≥ 2,000 capacity, the decision-maker on the call, and a current platform or setup named. For self-serve, any account that creates an event with ≥ 500 capacity or sells its first 100 paid tickets gets a human touch the same day.</p>
+<p><strong>Nurture:</strong> the right profile but the next event is &gt; 4 months away, or they're locked into a contract (record the end date in Freshsales and trigger a sequence 90 days before it).</p>
+<p><strong>Disqualify early:</strong> free-only events; under ~1,000 tickets a year (self-serve, no sales time); categories Ticmint's gateways won't support; students or individuals without an event; agencies that don't control ticketing.</p>
+<hr />
+<h2>D5. Metrics</h2>
+<p><strong>North star: organisers who sold paid tickets through Ticmint this month (active paying organisers), split self-serve vs sales-led.</strong></p>
+<p>Why this, and why now rather than in two years: revenue is fee × GMV, but GMV today is dominated by a few federations and is lumpy by tournament calendar, so a good or bad month says little about whether growth is working. The question for the next two quarters is <em>can Ticmint repeatedly win and activate new organisers in its ICP?</em> Active paying organisers answers that directly, and it can't be gamed by sign-ups that never sell. In two years, with a broad base, I'd switch to <strong>net GMV retention</strong> (are organisers running more and bigger events on Ticmint), which is what compounds.</p>
+<p><strong>Leading indicators</strong></p>
+<table>
+<thead>
+<tr>
+<th>Indicator</th>
+<th>How it changes a decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SQLs per week by channel and market</td>
+<td>Where outbound effort and conquest budget go next week</td>
+</tr>
+<tr>
+<td>Activation: % of new sign-ups selling a first paid ticket within 14 days</td>
+<td>Below ~20% means the problem is onboarding (gateway setup, templates), not acquisition, so pause spend and fix the product path</td>
+</tr>
+<tr>
+<td>Outbound positive reply rate by message angle</td>
+<td>Kills or scales angles (fee maths vs data ownership vs DTCM) within 2 weeks</td>
+</tr>
+<tr>
+<td>Share of answer on 40 money prompts + review count</td>
+<td>Whether off-site work (reviews, list inclusion) or on-site pages get the next sprint</td>
+</tr>
+<tr>
+<td>Comparison-page → demo conversion</td>
+<td>Whether the fee calculator and comparison pages are the right landing for conquest ads</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lagging indicators</strong></p>
+<table>
+<thead>
+<tr>
+<th>Indicator</th>
+<th>How it changes a decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>New-organiser GMV and net revenue (cohorted by month of acquisition)</td>
+<td>Which segment actually pays back, which decides where the next quarter's ICP weight goes</td>
+</tr>
+<tr>
+<td>CAC payback by segment and channel</td>
+<td>Whether a channel scales, holds or is cut</td>
+</tr>
+<tr>
+<td>Organiser retention (ran a second event on Ticmint within 6 months)</td>
+<td>Low retention in a segment means stop acquiring it until the product is fixed</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>D6. Risks and trade-offs</h2>
+<p><strong>Biggest assumptions</strong></p>
+<ol>
+<li>Promoters on marketplaces will give up marketplace <em>discovery</em> for data ownership and lower fees. This is the big one. Platinumlist and BookMyShow also <em>sell</em> tickets to their own audiences. (Mitigation: position it as "your own checkout first, the marketplace as one channel". The Thrissur Pooram Dubai listing on both Platinumlist and ticmint.com shows dual-listing already happens.)</li>
+<li>Public listings give enough data (price, capacity, organiser) to make the fee maths credible.</li>
+<li>The team can turn around onboarding and gateway setup inside a 30–90 day on-sale window.</li>
+</ol>
+<p><strong>Three things most likely to go wrong in the first six months</strong></p>
+<ol>
+<li><strong>Measurement stays broken.</strong> The duplicate GTM and missing Meta CAPI mean every channel decision rests on bad data. Fix in month one, before any spend.</li>
+<li><strong>The secondary ICP eats the primary's time.</strong> One federation deal can absorb the founder and the team for a quarter. Ring-fence: federation work is founder-led, everything else runs on the system.</li>
+<li><strong>Outbound burns domains or the market.</strong> The UAE promoter scene is small and connected. Badly targeted sequences get talked about. Tight lists, Tier 1 by hand, hard deliverability limits.</li>
+</ol>
+<p><strong>If early signals come back flat (say, week 6):</strong> check the inputs before the message. Did we reach the right people, and are the triggers real? Interview 10 organisers who said no and 5 who churned. Narrow to one market (UAE, where DTCM is a moat) and one competitor story. Test a partner channel: DTCM permit consultants and event agencies, who bring many organisers at once.</p>
+<p><strong>What I'm knowingly trading away:</strong> UK/US self-serve growth, broad brand awareness, social follower counts, content volume, and the NFT/anti-scalping story. Also some short-term speed: month one is plumbing (tracking, site leaks, reviews), not campaigns.</p></section>
+<section id="part-e" class="doc"><h1>Part E: Proof of Work</h1>
+<blockquote>
+<p>Every number below is already published in my <a href="https://dannygrowthmarketing.github.io/revenue-casebook/">revenue casebook</a>, with its source. Where the result isn't only mine, or the data has a known flaw, the row says so.</p>
+</blockquote>
+<h2>1. Pages I built (live)</h2>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it is</th>
+<th>What was mine</th>
+<th>What I'd change now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/revenue-casebook/">Revenue casebook</a></td>
+<td>Seven client cases, each with its numbers and what's still unproven</td>
+<td>Everything: research, copy, design, build</td>
+<td>Add a source line under every figure, not just per case</td>
+</tr>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/mrjewels-google-ads-case-study/">MR Jewels Google Ads case study</a></td>
+<td>26-month account review from the Google Ads exports</td>
+<td>Analysis, design, build</td>
+<td>Separate my months from the inherited account history</td>
+</tr>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/mrjewels-august-2026-report/">MR Jewels August 2026 review</a></td>
+<td>Monthly business review: 16 sections, 22 charts</td>
+<td>Analysis, design, build</td>
+<td>Margin and Meta spend were never supplied; profit view is incomplete</td>
+</tr>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/toniguy-july-2026-report/">TONI&amp;GUY July 2026 report</a></td>
+<td>Monthly report for a 16-salon network</td>
+<td>Analysis, design, build</td>
+<td>Tie every chart to till data, not platform data</td>
+</tr>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/audit-journey/">Audit journey</a></td>
+<td>My end-to-end audit method on a worked example</td>
+<td>Method, copy, build</td>
+<td>—</td>
+</tr>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/ticmint-internet-listener/">This submission site</a></td>
+<td>Live dashboard over the agent's committed data</td>
+<td>Built with Claude Code, reviewed and corrected by me</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2>2. Campaigns I ran</h2>
+<p><strong>Platforms:</strong> Google Ads (Search, Performance Max, Demand Gen), Meta Ads, LinkedIn Ads, Google Business Profile. Measurement in GA4, GTM, Looker Studio and HubSpot.</p>
+<p><strong>ROAS.</strong> The one account where I can show revenue-based ROAS is MR Jewels (D2C jewellery, Bengaluru):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Figure</th>
+<th>Source and caveat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Max</td>
+<td><strong>24.3×</strong>, Performance Max</td>
+<td>Google Ads, platform-reported purchase value, 9 Jul 2024 – 17 Aug 2026. Account lifetime, not only my tenure (I ran it from Aug 2026). PMax was 8.1% of spend and 43.8% of conversion value.</td>
+</tr>
+<tr>
+<td>Average</td>
+<td><strong>4.48×</strong> blended</td>
+<td>Same account and source. ₹62.9L spend, ₹2.82 Cr conversion value, 5,028 purchases.</td>
+</tr>
+<tr>
+<td>My month</td>
+<td><strong>₹303 CPA</strong>, 1,351 conversions</td>
+<td>Aug 2026, 1–17 Aug, after the brand Search rebuild and store PMax launch.</td>
+</tr>
+<tr>
+<td>The catch</td>
+<td>Treat ROAS as an upper bound</td>
+<td>In my tracking audit (Sep 2026) I found purchases counted twice: Shopify app tag + GA4 import.</td>
+</tr>
+</tbody>
+</table>
+<p>The other accounts are measured on revenue, leads and cost, not ROAS:</p>
+<table>
+<thead>
+<tr>
+<th>Account</th>
+<th>Result</th>
+<th>Source and caveat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/revenue-casebook/toni-and-guy.html">TONI&amp;GUY Bangalore</a>, 16 salons</td>
+<td>Revenue <strong>+14.7%</strong> vs same months 2025 (₹14.04 → ₹16.10 Cr), average bill <strong>+21.6%</strong>, Mar–Aug 2026</td>
+<td>Salon till data. Google spend also rose 74%, so not all of it is media efficiency.</td>
+</tr>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/revenue-casebook/elites-dental.html">Elites Dental Care</a></td>
+<td>Search CPC <strong>₹79.45 → ₹21.20</strong> after the 1 Oct rebuild</td>
+<td>Google Ads. Booking tracking is still being set up, so no cost per booking yet.</td>
+</tr>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/revenue-casebook/resort.html">Gold Coins Club &amp; Resort</a></td>
+<td>Found <strong>52 of 55</strong> Google "conversions" were map taps: real cost per lead ~₹580, not ₹95</td>
+<td>Google Ads vs the resort's sales dashboard. A measurement fix, not a growth claim.</td>
+</tr>
+<tr>
+<td><a href="https://dannygrowthmarketing.github.io/revenue-casebook/everywatch.html">EveryWatch</a>, global marketplace</td>
+<td>Monthly new users <strong>9,113 → 182,782</strong>, Jan 2024 – May 2025</td>
+<td>GA4, all channels. No revenue claimed.</td>
+</tr>
+</tbody>
+</table>
+<h2>3. Anything else I've built</h2>
+<ul>
+<li><strong>This repo.</strong> A lead-intelligence agent with a custom MCP server (14 tools), scheduled GitHub Actions runs and a self-refreshing Google Sheet. → <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/README.md">README</a></li>
+<li><strong><a href="https://elites-marketing-dashboard.vercel.app/">Elites marketing dashboard</a>.</strong> Live marketing intelligence for a dental clinic: Google Ads, GA4, Search Console, Clarity and website leads in one place, synced daily, with ranked insights that each carry evidence and a suggested fix. Built by me for a current client.</li>
+<li><strong><a href="https://dannygrowthmarketing.github.io/ticmint-internet-listener/assets/ticmint-digital-audit-oct-2026.pdf">Ticmint digital audit</a>.</strong> 16 pages, done before the first interview from public sources only.</li>
+<li><strong><a href="https://dannygrowthmarketing.github.io/audit-journey/">Audit journey</a>.</strong> How I audit an account end to end, on a real prospect.</li>
+<li><strong>Client reporting in HTML.</strong> Monthly reviews that join ad platforms, Shopify or till data, and CRM, published as pages instead of decks (links above).</li>
+</ul></section>
+<section id="part-f" class="doc"><h1>Part F: Audit, operating plan and status</h1>
+<p>This section came out of a review of my own build on 21 Oct 2026. It has four jobs: say what was wrong, say what I changed and how I tested it, set out how the listener becomes a sales process, and separate what is proven from what is only planned. Every number below links to a file in the repo or is labelled as not measured yet.</p>
+<h2>F1. Audit: what I found</h2>
+<p>I checked the repo, the workflow history, the committed data and the Google Sheet before changing anything.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Area</th>
+<th>Finding (verified)</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Google Sheet</td>
+<td>The sheet the README linked to was <strong>empty</strong>. The Apps Script that should fill it had never been run.</td>
+<td>High: the deliverable "Sheet that refreshes on a schedule" did not exist</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Scheduling</td>
+<td>All 8 runs were <code>push</code>-triggered. The cron (<code>17 */6 * * *</code>) had never fired yet, because the repo was created at 08:2x UTC and the first slot is 12:17 UTC. "Runs on a schedule" was <strong>configured, not proven</strong>.</td>
+<td>High</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Metrics</td>
+<td>The site showed "951 posts fetched". That was a sum over runs of re-fetched posts, so the same post counted up to 7 times.</td>
+<td>High: misleading</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Lead quality</td>
+<td>One kept row was an HN comment about a <strong>bomb threat at a venue</strong>: it matched "sell tickets" with no organiser speaking. Scoring gave points for any competitor mention.</td>
+<td>High</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Scoring</td>
+<td>Scores were a single opaque number. No per-criterion evidence, no confidence, no ICP fit, no next action.</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>6</td>
+<td>LLM</td>
+<td>0 LLM calls ever. No <code>LLM_API_KEY</code> is set, so every verdict came from the rules.</td>
+<td>Medium (disclosed)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Sources</td>
+<td>Reddit returns 403/429 from GitHub Actions on every run. Bluesky has no credentials. Only HN and Mastodon work.</td>
+<td>Medium (external)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Failure handling</td>
+<td>A crash on one post would have aborted the run. Runs had no ok/partial/failed status.</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Duplicates</td>
+<td>De-duplication worked (seen-state + upsert), but there was no test for it.</td>
+<td>Low</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Human review</td>
+<td>The sheet had a <code>status</code> column a refresh could overwrite in one of the two sync paths.</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Dashboard</td>
+<td>Did not separate discovered, processed, qualified; had no scheduled-run evidence.</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Tests</td>
+<td>10 tests, none for failures, LLM errors, missing credentials or duplicates.</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Run status</td>
+<td>Found after the first fix: run 8 said <code>ok</code> although Reddit was rate-limited on most queries, because it answered one.</td>
+<td>Medium</td>
+</tr>
+</tbody>
+</table>
+<h2>F2. What I changed, in priority order</h2>
+<ol>
+<li><strong>Sheet that fills itself.</strong> A new sheet whose <code>Leads</code> and <code>Run log</code> tabs are <code>IMPORTDATA</code> formulas over the CSVs the agent commits. No keys, no script. A <code>Review</code> tab holds human decisions and is joined back by <code>lead_id</code>, so no refresh can overwrite them. <code>Hot queue</code> lists Hot and Warm rows. The old empty sheet is renamed "unused".</li>
+<li><strong>Evidence-based scoring</strong> (<a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/listener_mcp/scoring.py"><code>scoring.py</code></a>). Six criteria, each with the matched text as evidence: organiser 0–30, platform 0–15, problem 0–25, switching or near-term intent 0–20, identity 0–5, ICP 0–5. A post with no first-person organiser language is capped at 49 (below Warm). Hot (≥ 70) needs organiser <strong>and</strong> problem evidence. A competitor name alone is worth 15 at most. Ticket-buyer, promotion and noise penalties. Every row carries <code>score_explanation</code>, e.g. <code>organiser 30 + platform 15 + problem 25 + intent 20 + icp 2 = 92</code>.</li>
+<li><strong>Per-lead fields.</strong> <code>confidence</code>, <code>icp_fit</code>, <code>organisation_hint</code> (marked unverified), <code>event_context</code>, <code>evidence_quote</code> (verbatim), <code>score_explanation</code>, <code>next_action</code>, <code>review_status</code>, plus the URL.</li>
+<li><strong>Honest run accounting</strong> (<a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/agent/pipeline.py"><code>pipeline.py</code></a>). Each run logs <code>discovered</code>, <code>new</code>, <code>shortlisted</code>, <code>qualified</code>, Hot/Warm/Watch, LLM calls and errors, processing errors, per-source ok/failed/skipped and <code>status</code> (ok / partial / failed). A source with any error makes the run partial. A post whose processing crashes is not marked seen, so it is retried. Old rows are migrated on read.</li>
+<li><strong>LLM safety.</strong> The LLM can only lower or confirm: if it says "not an organiser" the post is dropped; its quote must be verbatim in the post and its platform must be named, otherwise the verdict is ignored. Timeouts fall back to rules.</li>
+<li><strong>CRM interface, clearly unconnected.</strong> <code>export_to_crm</code> maps leads to Freshsales fields and writes them to a local outbox, returning <code>NOT CONNECTED</code>. Nothing is sent anywhere.</li>
+<li><strong>Dashboard.</strong> Pipeline and run panels now show discovered vs processed vs qualified, unique prospects, reviewed, scheduled vs push runs (from the GitHub Actions API, shown as "unavailable" if that call fails), failed runs, last successful run and per-source status.</li>
+</ol>
+<h2>F3. Tests</h2>
+<p><code>python -m pytest -q</code> → <strong>26 passed</strong> (last run 23 Oct 2026, and on every push by the <code>test</code> workflow).</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it proves</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test_scoring.py</code> (9)</td>
+<td>Real fixtures: the suspended-account organiser scores Hot; the bomb-threat comment, promotions, digests and fan complaints are rejected</td>
+</tr>
+<tr>
+<td><code>test_mcp_end_to_end.py</code> (1)</td>
+<td>The agent starts the MCP server over stdio and runs a full cycle twice through its tools; the second run adds nothing</td>
+</tr>
+<tr>
+<td><code>test_failures.py</code> (16)</td>
+<td>Blocked source → partial and other sources kept; all sources down → failed; a crash on one post keeps the rest and retries it; source failing midway → partial; no duplicates; review status survives; missing credentials are skips; LLM timeout falls back; an invented quote is ignored; LLM cannot make a non-organiser Hot; competitor + anger without an organiser stays below Warm; every lead carries evidence; CRM export says unconnected</td>
+</tr>
+</tbody>
+</table>
+<p>What tests cannot prove: that real organisers will post often enough, or that a person agrees with the scores. Those need the review loop in F7.</p>
+<h2>F4. Recommended initial segment</h2>
+<p>Scored 1–5 against the five criteria in the brief. These are my judgments from the research in Part D, not measured data.</p>
+<table>
+<thead>
+<tr>
+<th>Segment</th>
+<th>Public signal strength</th>
+<th>Ticket volume</th>
+<th>Product fit</th>
+<th>Commercial value</th>
+<th>Decision-maker easy to find</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>UAE/India mid-market recurring promoters and festivals</strong> (on Platinumlist, District, BookMyShow)</td>
+<td>2 on social, <strong>4 on event listings</strong></td>
+<td>4</td>
+<td>5</td>
+<td>5</td>
+<td>4</td>
+<td><strong>20–22</strong></td>
+</tr>
+<tr>
+<td>India sports federations and leagues</td>
+<td>2</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>3</td>
+<td>17</td>
+</tr>
+<tr>
+<td>UK/US small organisers complaining about Eventbrite</td>
+<td><strong>4</strong></td>
+<td>2</td>
+<td>3</td>
+<td>2</td>
+<td>3</td>
+<td>14</td>
+</tr>
+<tr>
+<td>Universities and student unions</td>
+<td>2</td>
+<td>3</td>
+<td>3</td>
+<td>2</td>
+<td>4</td>
+<td>14</td>
+</tr>
+<tr>
+<td>Conferences and B2B events</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>13</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation: start with UAE/India mid-market recurring promoters.</strong> They sell enough tickets for a commission saving to matter, the founder or head of ticketing is usually named on the listing or Instagram, and Ticmint's strengths (white-label, own payouts, local support) are what marketplaces don't give them.</p>
+<p>The honest tension: the listener as built finds its best public complaints in the <em>UK/US Eventbrite</em> segment, which is the weakest commercial fit. So the next source to build is an event-listing monitor for UAE/India (who is selling, how often, at what price), and the complaint listener stays on as a cheap secondary feed.</p>
+<h2>F5. Workflow: from discovery to revenue</h2>
+<pre><code> discovery        public posts and listings (HN, Mastodon, Reddit*, Bluesky*, listings**)
+     │
+ filtering        relevance gate: ticketing or a named platform must appear
+     │
+ organiser ID     first-person organiser language required; buyers and promos penalised
+     │
+ qualification    problem + platform + intent evidence; optional LLM check, grounded
+     │
+ scoring          6 criteria, Hot ≥ 70 / Warm ≥ 50 / Watch, with explanation
+     │
+ Sheet / CRM      Sheet: live.  CRM: mapped, NOT CONNECTED (dry-run outbox)
+     │
+ human review     Review tab: Accepted / Rejected (reason) — nothing moves without it
+     │
+ approved outreach  a person replies in the public thread or uses a public business contact
+     │
+ demo → opportunity → customer → revenue      tracked in Review tab now, CRM later
+</code></pre>
+<p>* blocked or not configured today. ** proposed, not built.</p>
+<p>Rules that hold at every step:
+- <strong>No automatic messages.</strong> The agent drafts an opener; a person decides whether to send it.
+- <strong>Public data only.</strong> No logins, no private groups, no scraping behind access controls, no bypassing rate limits or blocks (Reddit's 403 is respected and logged, not evaded).
+- <strong>Minimum personal data.</strong> Handle, public profile link and the post. No emails are collected or guessed.
+- <strong>Opt-out respected.</strong> Anyone who says no is marked <code>Rejected: other</code> with a note and never contacted again.</p>
+<h2>F6. Measurement framework</h2>
+<p>None of these have values yet beyond what the run log shows. Where a number exists it comes from <code>data/runs.csv</code> or <code>data/summary.json</code>.</p>
+<p><strong>Operational (is the machine working?)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Definition</th>
+<th>Source</th>
+<th>Today</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Collection success rate</td>
+<td>source calls that returned data ÷ calls attempted, per source</td>
+<td>runs.csv <code>sources_ok/failed</code></td>
+<td>HN, Mastodon OK; Reddit blocked; Bluesky skipped</td>
+</tr>
+<tr>
+<td>Scheduled run success</td>
+<td>scheduled runs with status ok or partial ÷ scheduled runs</td>
+<td>Actions API + runs.csv</td>
+<td>1 of 1 so far (slot 12:17 fired at 17:12 UTC); too few to call a rate</td>
+</tr>
+<tr>
+<td>Relevant-post rate</td>
+<td>shortlisted ÷ new</td>
+<td>runs.csv</td>
+<td>Per run in the log</td>
+</tr>
+<tr>
+<td>Qualification rate</td>
+<td>qualified ÷ new</td>
+<td>runs.csv</td>
+<td>Per run in the log</td>
+</tr>
+<tr>
+<td>Duplicate rate</td>
+<td>rows rejected as already seen ÷ discovered</td>
+<td><code>discovered − new</code></td>
+<td>Per run in the log</td>
+</tr>
+<tr>
+<td>False-positive rate</td>
+<td>Rejected ÷ reviewed</td>
+<td>Review tab</td>
+<td><strong>Unavailable</strong> until leads are reviewed</td>
+</tr>
+<tr>
+<td>Source availability</td>
+<td>share of runs where each source answered</td>
+<td>runs.csv</td>
+<td>In the log</td>
+</tr>
+<tr>
+<td>Cost per qualified lead</td>
+<td>(LLM spend + paid APIs) ÷ qualified</td>
+<td>provider bill</td>
+<td>£0 today (free tiers, 0 LLM calls)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sales (does it make money?)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Leads reviewed</td>
+<td>rows with any review_status</td>
+</tr>
+<tr>
+<td>Accepted</td>
+<td>reviewed and judged a real organiser in ICP</td>
+</tr>
+<tr>
+<td>Contacted (approved)</td>
+<td>a person sent a message</td>
+</tr>
+<tr>
+<td>Replies</td>
+<td>the organiser answered</td>
+</tr>
+<tr>
+<td>Demos booked</td>
+<td>meeting held</td>
+</tr>
+<tr>
+<td>Opportunities</td>
+<td>pricing or migration discussed</td>
+</tr>
+<tr>
+<td>Customers</td>
+<td>signed</td>
+</tr>
+<tr>
+<td>CAC</td>
+<td>(tooling + time cost) ÷ customers from this channel</td>
+</tr>
+<tr>
+<td>Revenue</td>
+<td>first-year contract value from listener-sourced customers</td>
+</tr>
+</tbody>
+</table>
+<p>All sales metrics are <strong>0 or not yet measured</strong>. I will not report any of them until a real lead reaches that stage.</p>
+<h2>F7. Feedback loop into scoring</h2>
+<ol>
+<li>Every week a person reviews all Hot and Warm rows in the <code>Review</code> tab.</li>
+<li>Each rejection carries a reason (<code>not an organiser</code>, <code>not ICP</code>, <code>other</code>). The reason points at the criterion that was wrong.</li>
+<li>Monthly, compare criterion scores between Accepted and Rejected rows. A criterion that scores high on rejected rows gets narrower patterns or less weight; phrases from accepted rows that the rules missed become new patterns, each with a fixture test.</li>
+<li>Once there are ~200 reviewed rows, report precision per source and per tier, and move the Hot/Warm thresholds to where precision is acceptable.</li>
+<li>Downstream statuses (replied, demo, customer) show which signals actually predict revenue; those criteria get more weight.</li>
+</ol>
+<h2>F8. 30-60-90 day plan</h2>
+<p><strong>Days 1–30: make the signal trustworthy.</strong>
+Prove scheduled runs for two weeks. Add an LLM key and Reddit OAuth. Build the UAE/India event-listing monitor. Review every Hot/Warm row weekly. Goal: a measured false-positive rate and 20+ accepted organisers, or a clear finding that public signal is too thin.</p>
+<p><strong>Days 31–60: turn signal into conversations.</strong>
+Connect Freshsales (Accepted rows only). Run approved, personalised outreach to accepted organisers, starting with the UAE/India segment. Track replies and demos in the CRM. Retune scoring from the first month of reviews.</p>
+<p><strong>Days 61–90: decide on scale.</strong>
+Compare cost per demo and demo-to-opportunity rate against other channels in Part D. If it earns its place: add sources and segments, a daily digest for sales, and a monthly scoring review. If it doesn't: keep the listing monitor (it doubles as market intelligence) and drop the complaint listener.</p>
+<h2>F9. Status: what is true today</h2>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Item</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Implemented and verified</strong></td>
+<td>Custom MCP server with 14 tools, driven over stdio by the agent</td>
+<td><code>test_mcp_end_to_end.py</code>; every Actions run log prints the tool list</td>
+</tr>
+<tr>
+<td></td>
+<td>GitHub Actions job runs, scores, commits data</td>
+<td>11+ runs in <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/data/runs.csv"><code>data/runs.csv</code></a>: <code>push</code>, <code>workflow_dispatch</code> and <code>schedule</code> triggers</td>
+</tr>
+<tr>
+<td></td>
+<td>Evidence-based scoring, failure handling, de-duplication, review preservation</td>
+<td>26 passing tests</td>
+</tr>
+<tr>
+<td></td>
+<td>Live site</td>
+<td>https://dannygrowthmarketing.github.io/ticmint-internet-listener/ (fetched after deploy)</td>
+</tr>
+<tr>
+<td></td>
+<td>Google Sheet exists with IMPORTDATA formulas, shared with Daniel</td>
+<td>Drive file 1IJpp71O…</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>Scheduled (cron) runs</strong>, with a delay</td>
+<td>First <code>schedule</code> run fired at 17:12 UTC on 21 Oct (<a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/runs/39641747829">run</a>, success): the 12:17 slot, about 5 hours late. GitHub cron is best effort, so a fallback check at :47 past each slot dispatches the workflow if nothing started (tested 14:06 and 18:48 UTC); those runs are logged as <code>workflow_dispatch</code></td>
+</tr>
+<tr>
+<td></td>
+<td>Sheet loads live data</td>
+<td>Read back on 21 Oct 14:22 UTC: Leads, Hot queue and Run log populated from the repo CSVs</td>
+</tr>
+<tr>
+<td><strong>Implemented, not yet verified</strong></td>
+<td>LLM qualification</td>
+<td>Code and tests exist; 0 real calls (no key)</td>
+</tr>
+<tr>
+<td></td>
+<td>Bluesky source</td>
+<td>Code exists; no credentials</td>
+</tr>
+<tr>
+<td><strong>Proposed</strong></td>
+<td>Event-listing monitor, Freshsales sync, company enrichment, weekly digest, feedback re-weighting</td>
+<td>Sections F7, F8 and README "What I'd build next"</td>
+</tr>
+<tr>
+<td><strong>Blocked</strong></td>
+<td>Reddit</td>
+<td>403/429 from GitHub Actions IPs; needs Reddit OAuth app</td>
+</tr>
+<tr>
+<td></td>
+<td>CRM</td>
+<td>No Freshsales credentials; export runs in dry-run mode and says NOT CONNECTED</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Real results so far:</strong> one genuine Hot lead (an organiser whose Eventbrite account was suspended days before an event). No one has been contacted. No demos, opportunities, customers or revenue.</p>
+<h2>F10. Readiness checklist</h2>
+<ul>
+<li>[x] Repo public, MCP server, agent, tests, README</li>
+<li>[x] Tests pass locally and in CI</li>
+<li>[x] Site deployed and reachable</li>
+<li>[x] Sheet created and shared</li>
+<li>[x] An editor clicks <strong>Allow access</strong> in the sheet so the formulas load</li>
+<li>[x] Sheet link sharing set to "Anyone with the link: Viewer" (so reviewers can open it)</li>
+<li>[x] First scheduled run confirmed in the Actions history (<a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/actions/runs/39641747829">17:12 UTC, 21 Oct</a>; about 5 hours late)</li>
+<li>[ ] <code>LLM_API_KEY</code> (and <code>LLM_BASE_URL</code>, <code>LLM_MODEL</code>) set as repo secrets/variables</li>
+<li>[ ] Optional: <code>BSKY_HANDLE</code>/<code>BSKY_APP_PASSWORD</code>, <code>REDDIT_CLIENT_ID</code>/<code>REDDIT_CLIENT_SECRET</code></li>
+<li>[x] Part E filled from the published casebook, each figure sourced</li>
+<li>[ ] Walkthrough video link added</li>
+</ul>
+<h2>F11. How I'd explain it in the interview (two minutes)</h2>
+<p>"I built a listener that reads public posts where event organisers complain about their ticketing platform. A custom MCP server exposes the search, scoring, storage and Sheet steps as tools, and a scheduled GitHub Actions job drives them. Every run is logged with what it found, what failed and why.</p>
+<p>The first version was too generous. It kept a comment about a bomb threat because it said 'sell tickets', and it counted the same posts several times in the headline number. So I rebuilt the scoring around evidence: a post only gets far if an organiser is speaking in the first person, about a real problem, with a platform named. Each score shows its sum. The LLM is optional and can only confirm or reject, and if it invents a quote it's ignored.</p>
+<p>It works on two sources today. Reddit blocks cloud servers, and I chose to log that rather than work around it. So far it has found one real lead. Nobody has been contacted, because outreach needs a person to approve it. The bigger lesson is that the best buyers for Ticmint, mid-market promoters in the UAE and India, don't complain on Reddit. The next thing I'd build is a monitor of their event listings, which tells you who is selling, how often, and roughly how much commission they're paying."</p></section>
+<section id="ai-note" class="doc"><h1>Where AI did the work, where I overrode it, where it was confidently wrong</h1>
+<p>This whole submission was built with Claude Code: the code, the first drafts of every written part, and the GitHub/Drive plumbing. That's the job description, so I didn't avoid it. What matters is where it needed correcting. Every item below happened during this build and can be checked in the commit history or <code>data/runs.csv</code>.</p>
+<p><strong>Where AI did the work</strong>
+- Wrote the MCP server, the sources, the scoring rules, the tests and the workflows, and drafted Parts B–D from my audit notes and the two Ticmint research docs.
+- Ran the agent live on GitHub Actions within an hour of starting, which is why the first mistakes surfaced so fast.</p>
+<p><strong>Where it was confidently wrong</strong>
+1. <strong>"Reddit's public JSON will work from GitHub Actions."</strong> It didn't: HTTP 403 on the first run. Its fallback, PullPush, was also confidently proposed and also returned 403 from Actions. Reddit now needs OAuth credentials or a residential IP. Both failures are in <code>data/runs.csv</code>, run 1 onwards.
+2. <strong>"Organiser-phrased queries plus a pain lexicon will be precise enough."</strong> The first live run kept 31 rows and all 31 were noise: Hacker News essays on AI consciousness and #eventprofs blog posts that matched "support" and "slow". The fix was a hard relevance gate (nothing scores unless it names a platform or is about tickets) plus a stricter bar when no LLM verdict exists. Re-scoring run 1's 31 rows offline with the gate kept 0. Then run 4 showed the next blind spot: 9 "Warm" rows that were organisers happily <em>advertising</em> events on Eventbrite, while a real lead (account suspended five days before an event) scored only 55. Pain words now count only alongside a problem, anger or switching signal. Both posts became test fixtures.
+3. <strong>SDK drift.</strong> It wrote against the MCP Python SDK 1.x API (<code>FastMCP</code>) while the installed version was 2.3, where it's renamed. It pinned <code>mcp&lt;2</code> rather than learn the new API under deadline. A defensible call, but the code wasn't right first time.
+4. <strong>A regex it was sure about.</strong> The organiser pattern missed "I'm organising a conference". The fixture test caught it, which is why the tests exist.
+5. <strong>Platform permissions.</strong> It assumed the GitHub integration could create the repository. It couldn't (403), so I created it by hand.
+6. <strong>Its own success metrics.</strong> It put "951 posts fetched" on the dashboard, a sum that counted the same posts up to seven times, and called the schedule "running" before cron had fired once. It also kept a Hacker News comment about a bomb threat as a lead because it contained "sell tickets", and logged run 8 as <code>ok</code> while Reddit was rate-limited. An audit on 21 Oct caught all four; the fixes and tests are in <a href="https://github.com/dannygrowthmarketing/ticmint-internet-listener/blob/main/docs/part-f-audit-and-operating-plan.md">Part F</a>.
+7. <strong>"The Sheet refreshes itself."</strong> The linked sheet was empty: the Apps Script it relied on had never been run. Replaced with formula-based import.</p>
+<ol start="8">
+<li><strong>"Reddit: ok."</strong> Even after fix 6, the run log listed Reddit under <code>sources_ok</code> whenever it answered one query and failed the rest. The run status was right (<code>partial</code>), the column wasn't. Caught on 23 Oct while re-running before submission. A source now counts as ok only if every call worked, old rows are corrected on read, and a test covers it.</li>
+</ol>
+<p><strong>Where I overrode it</strong>
+- Kept the rules engine as a first-class scorer instead of "LLM classifies everything". Rules are free, deterministic and testable. The LLM only sees the shortlist and must quote the post, or its answer is discarded.
+- No number goes in without a source. Part E uses only figures already published in my casebook, and says where a result isn't only mine (MR Jewels lifetime ROAS) or the data is flawed (double-counted purchases).
+- Picked UAE/India promoters as the primary ICP, though the listener finds its best leads in the UK/US Eventbrite segment. Volume of complaints isn't the same as commercial fit.</p>
+<p><strong>The pattern:</strong> AI was reliably good at producing working structure fast, and reliably overconfident about the outside world (what an API allows from a given IP, what real posts look like). The defence was to run it against the real internet early and write down what broke.</p></section>
+</main>
+<footer>Built with Claude Code. See the AI-use note for where it was right and where it wasn't.</footer>
+<script>
+const REPO = "dannygrowthmarketing/ticmint-internet-listener";
+const RAW = `https://raw.githubusercontent.com/${REPO}/main/data/`;
+function parseCSV(t){const rows=[];let r=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){r.push(f);f=""}else if(c=='\n'){r.push(f);rows.push(r);r=[];f=""}else if(c!='\r')f+=c}if(f||r.length){r.push(f);rows.push(r)}const h=rows.shift()||[];return rows.filter(x=>x.length>1).map(x=>Object.fromEntries(h.map((k,i)=>[k,x[i]??""])))}
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const NA='<span class="na">unavailable</span>';
+async function get(url,kind){try{const r=await fetch(url+(url.includes("?")?"&":"?")+"t="+Date.now());if(!r.ok)return null;return kind==="json"?await r.json():await r.text()}catch(e){return null}}
+const kpi=(v,l,hint)=>`<div class="kpi"><div class="v">${v===null||v===undefined?NA:esc(v)}</div><div class="l">${l}</div>${hint?`<div class="h">${hint}</div>`:""}</div>`;
+(async()=>{
+  const [leadsTxt,runsTxt,summary,actions]=await Promise.all([get(RAW+"leads.csv"),get(RAW+"runs.csv"),get(RAW+"summary.json","json"),
+    get(`https://api.github.com/repos/${REPO}/actions/workflows/listen.yml/runs?per_page=100`,"json")]);
+  const leads=leadsTxt?parseCSV(leadsTxt):null, runs=runsTxt?parseCSV(runsTxt):null;
+  const S=summary||{};
+  document.getElementById("kpis-pipeline").innerHTML=[
+    kpi(S.posts_processed_total,"Distinct posts scored","de-duplicated across runs"),
+    kpi(runs?runs.slice(-1)[0]?.discovered:null,"Posts discovered, last run","unique posts the sources returned"),
+    kpi(leads?leads.length:null,"Qualified leads","cleared the evidence bar"),
+    kpi(leads?["Hot","Warm","Watch"].map(t=>leads.filter(l=>l.priority===t).length).join(" / "):null,"Hot / Warm / Watch",""),
+    kpi(S.unique_prospects,"Unique prospects","distinct authors"),
+    kpi(S.leads_reviewed,"Leads reviewed by a human","review_status set"),
+  ].join("");
+  let runK;
+  if(actions&&actions.workflow_runs){
+    const w=actions.workflow_runs, done=w.filter(r=>r.status==="completed");
+    const sched=done.filter(r=>r.event==="schedule"), ok=done.filter(r=>r.conclusion==="success");
+    const lastOk=ok[0];
+    runK=[kpi(sched.filter(r=>r.conclusion==="success").length,"Scheduled runs succeeded",sched.length?"":"none yet: cron fires at 00:17, 06:17, 12:17, 18:17 UTC"),
+          kpi(done.filter(r=>r.event!=="schedule").length,"Push / manual runs",""),
+          kpi(done.filter(r=>r.conclusion&&r.conclusion!=="success").length,"Failed workflow runs",""),
+          kpi(lastOk?lastOk.updated_at.replace("T"," ").slice(0,16)+" UTC":null,"Last successful run",lastOk?esc(lastOk.event):"")];
+  }else{
+    runK=[kpi(null,"Scheduled runs succeeded","GitHub API rate limit or offline"),kpi(runs?runs.filter(r=>r.trigger==="schedule").length:null,"Scheduled runs in run log",""),kpi(null,"Failed workflow runs",""),kpi(S.last_successful_run_utc,"Last successful run (run log)","")];
+  }
+  document.getElementById("kpis-runs").innerHTML=runK.join("");
+  const L=S.last_run||{};
+  if(S.last_run){const tag=(xs,c)=>(xs||"").split(" ").filter(Boolean).map(x=>`<span class="pill ${c}">${esc(x)}</span>`).join(" ");
+    document.getElementById("sources").innerHTML=`<b>Sources, last run:</b> ${tag(L.sources_ok,"ok")} ${tag(L.sources_failed,"bad")} ${tag(L.sources_skipped,"skip")}<br><span class="muted">${esc((L.source_errors||"").slice(0,260))}</span><br><span class="muted">LLM check: ${S.llm_enabled?"on":"off (no key configured), rules decide alone"} · Sheet push: ${S.sheet_push_enabled?"on":"off; the Sheet pulls this data with IMPORTDATA"}</span>`;}
+  const lb=document.querySelector("#leads tbody");
+  lb.innerHTML=leads===null?`<tr><td colspan="6" class="empty">${NA}</td></tr>`:leads.length?leads.slice(0,25).map(l=>`<tr><td><span class="pill ${esc(l.priority)}">${esc(l.priority)}</span></td><td>${esc(l.score)} · ${esc(l.confidence)}</td><td>${esc(l.competitor)||"–"}<br><span class="muted">${esc(l.problem)}</span></td><td><a href="${esc(l.url)}" rel="noopener">“${esc((l.evidence_quote||"").slice(0,160))}”</a><br><span class="muted">${esc(l.source)} · ${esc(l.community)} · ${esc(l.posted_utc)}</span></td><td class="small">${esc(l.score_explanation)}</td><td class="small">${esc(l.next_action)}</td></tr>`).join(""):`<tr><td colspan="6" class="empty">No post has cleared the evidence bar yet.</td></tr>`;
+  const rb=document.querySelector("#runs tbody");
+  rb.innerHTML=runs?runs.slice().reverse().slice(0,12).map(r=>`<tr><td>${esc(r.finished_utc)}</td><td>${esc(r.trigger)}</td><td><span class="pill ${r.status==="ok"?"ok":r.status==="failed"?"bad":"skip"}">${esc(r.status)}</span></td><td>${esc(r.discovered)}</td><td>${esc(r.new)}</td><td>${esc(r.qualified)}</td><td>${esc(r.hot)} / ${esc(r.warm)} / ${esc(r.watch)}</td><td>${esc(r.llm_calls)}</td><td class="small muted">${esc(r.sources_failed)}</td></tr>`).join(""):`<tr><td colspan="9" class="empty">${NA}</td></tr>`;
+  if(S.generated_utc)document.getElementById("updated").textContent="Data generated "+S.generated_utc+" UTC.";
+})();
+</script>
+</body>
+</html>
