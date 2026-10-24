@@ -1,6 +1,6 @@
 {
-  "generated_utc": "2026-10-24 04:37:36",
-  "posts_processed_total": 478,
+  "generated_utc": "2026-10-24 06:48:44",
+  "posts_processed_total": 480,
   "leads_total": 1,
   "leads_by_priority": {
     "Hot": 1,
@@ -9,27 +9,27 @@
   },
   "unique_prospects": 1,
   "leads_reviewed": 0,
-  "runs_logged": 34,
+  "runs_logged": 35,
   "runs_by_trigger": {
     "push": 10,
-    "workflow_dispatch": 13,
+    "workflow_dispatch": 14,
     "schedule": 11
   },
   "runs_by_status": {
     "ok": 0,
-    "partial": 34,
+    "partial": 35,
     "failed": 0
   },
-  "last_successful_run_utc": "2026-10-24 04:37:36",
+  "last_successful_run_utc": "2026-10-24 06:48:44",
   "last_run": {
-    "finished_utc": "2026-10-24 04:37:36",
-    "trigger": "schedule",
+    "finished_utc": "2026-10-24 06:48:44",
+    "trigger": "workflow_dispatch",
     "status": "partial",
     "sources_ok": "hackernews mastodon",
     "sources_failed": "reddit(1/23 ok)",
     "sources_skipped": "bluesky",
-    "discovered": "158",
-    "new": "5",
+    "discovered": "154",
+    "new": "2",
     "qualified": "0",
     "source_errors": "reddit: https://www.reddit.com/search.json -> HTTP 403; pullpush: https://api.pullpush.io/reddit/search/submission/ -> HTTP 403; rss: https://www.reddit.com/search.rss -> HTTP 429"
   },
