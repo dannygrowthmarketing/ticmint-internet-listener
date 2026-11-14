@@ -1,6 +1,6 @@
 {
-  "generated_utc": "2026-11-14 18:02:08",
-  "posts_processed_total": 2958,
+  "generated_utc": "2026-11-14 22:24:55",
+  "posts_processed_total": 2971,
   "leads_total": 26,
   "leads_by_priority": {
     "Hot": 4,
@@ -9,27 +9,27 @@
   },
   "unique_prospects": 25,
   "leads_reviewed": 0,
-  "runs_logged": 96,
+  "runs_logged": 97,
   "runs_by_trigger": {
     "push": 10,
     "workflow_dispatch": 17,
-    "schedule": 69
+    "schedule": 70
   },
   "runs_by_status": {
     "ok": 1,
-    "partial": 95,
+    "partial": 96,
     "failed": 0
   },
-  "last_successful_run_utc": "2026-11-14 18:02:08",
+  "last_successful_run_utc": "2026-11-14 22:24:55",
   "last_run": {
-    "finished_utc": "2026-11-14 18:02:08",
+    "finished_utc": "2026-11-14 22:24:55",
     "trigger": "schedule",
     "status": "partial",
     "sources_ok": "hackernews mastodon",
     "sources_failed": "reddit",
     "sources_skipped": "bluesky",
-    "discovered": "115",
-    "new": "12",
+    "discovered": "138",
+    "new": "13",
     "qualified": "0",
     "source_errors": "reddit: https://www.reddit.com/search.json -> HTTP 403; pullpush: https://api.pullpush.io/reddit/search/submission/ -> HTTP 403; rss: https://www.reddit.com/search.rss -> HTTP 403"
   },
